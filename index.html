@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>NEXUS — Discipline OS</title>
 <style>
-/* نفس الستايلات الأصلية بالكامل - لم يتم تغيير أي شيء */
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -702,78 +701,17 @@ canvas{width:100%!important;display:block;max-width:100%}
 
 <div id="toasts"></div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT — NEXUS DISCIPLINE OS v2.0
+════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 <script>
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
-  authDomain: "timemanger-8226f.firebaseapp.com",
-  projectId: "timemanger-8226f",
-  storageBucket: "timemanger-8226f.firebasestorage.app",
-  messagingSenderId: "613624657906",
-  appId: "1:613624657906:web:c2319e2a08aab6485b1d6b",
-  measurementId: "G-N22HP52JS5"
-};
+'use strict';
 
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// بيانات التطبيق
-let tasksData = [];
-let goalsData = [];
-let logsData = [];
-let sessionsData = [];
-let streakData = { count: 0, lastDate: null };
-let metaData = { lastPlanning: null, notifSeen: [] };
-let focusStateData = null;
-
-// استماع للتغييرات في الوقت الفعلي
-db.ref('tasks').on('value', (snapshot) => {
-  const data = snapshot.val();
-  tasksData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  refreshAll();
-});
-
-db.ref('goals').on('value', (snapshot) => {
-  const data = snapshot.val();
-  goalsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'goals') renderGoals();
-  refreshAll();
-});
-
-db.ref('logs').on('value', (snapshot) => {
-  const data = snapshot.val();
-  logsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'log') renderLog(window._curLogFilter);
-  if (window._curView === 'dashboard') renderTimeline(getFilteredLogs('today').slice(0,10), 'd-tl');
-});
-
-db.ref('sessions').on('value', (snapshot) => {
-  const data = snapshot.val();
-  sessionsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'analytics') renderAnalytics();
-});
-
-db.ref('streak').on('value', (snapshot) => {
-  streakData = snapshot.val() || { count: 0, lastDate: null };
-  document.getElementById('sb-streak').textContent = streakData.count;
-  if (window._curView === 'dashboard') renderDashboard();
-});
-
-db.ref('meta').on('value', (snapshot) => {
-  metaData = snapshot.val() || { lastPlanning: null, notifSeen: [] };
-});
-
-db.ref('focusState').on('value', (snapshot) => {
-  focusStateData = snapshot.val();
-  if (FM && FM.loadFromFirebase) FM.loadFromFirebase();
-});
-
-// Helper functions
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
 const uuid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,9);
 const todayStr = () => new Date().toISOString().split('T')[0];
 const daysAgoStr = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; };
@@ -799,412 +737,124 @@ function toast(msg, type='', dur=2800) {
   setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),310); }, dur);
 }
 
-function getFilteredLogs(filter) {
-  const logs = [...logsData].reverse();
-  if(filter==='today') return logs.filter(l=>isToday(l.timestamp));
-  if(filter==='week')  return logs.filter(l=>isThisWeek(l.timestamp));
-  return logs;
-}
+// ═══════════════════════════════════════════
+// DATABASE / FIREBASE SYNC
+// ═══════════════════════════════════════════
 
-// Database operations
-async function addTask(task) {
-  const newTaskRef = db.ref('tasks').push();
-  await newTaskRef.set(task);
-  return { id: newTaskRef.key, ...task };
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
+  authDomain: "timemanger-8226f.firebaseapp.com",
+  projectId: "timemanger-8226f",
+  storageBucket: "timemanger-8226f.firebasestorage.app",
+  messagingSenderId: "613624657906",
+  appId: "1:613624657906:web:c2319e2a08aab6485b1d6b",
+  measurementId: "G-N22HP52JS5"
+};
+firebase.initializeApp(firebaseConfig);
+const firestore = firebase.firestore();
+const docRef = firestore.collection('nexus_os').doc('user_data');
 
-async function updateTask(id, data) {
-  await db.ref(`tasks/${id}`).update(data);
-}
-
-async function deleteTask(id) {
-  await db.ref(`tasks/${id}`).remove();
-}
-
-async function addLog(log) {
-  await db.ref('logs').push().set(log);
-}
-
-async function addSession(session) {
-  await db.ref('sessions').push().set(session);
-}
-
-async function updateStreak(streak) {
-  await db.ref('streak').set(streak);
-}
-
-async function updateMeta(meta) {
-  await db.ref('meta').set(meta);
-}
-
-async function updateFocusState(state) {
-  await db.ref('focusState').set(state);
-}
-
-// Log Manager
-const LM = {
-  async log(action, taskId, extra={}) {
-    await addLog({
-      id: uuid(),
-      action, 
-      taskId, 
-      timestamp: Date.now(), 
-      ...extra
-    });
+const DB = {
+  _state: {
+    nx2_tasks: [],
+    nx2_goals: [],
+    nx2_logs: [],
+    nx2_sessions: [],
+    nx2_streak: {count:0,lastDate:null},
+    nx2_meta: {lastPlanning:null,notifSeen:[]},
+    nx2_focus: null
   },
-  getFiltered(filter) {
-    return getFilteredLogs(filter);
+  _saveTimer: null,
+  
+  _load(k,d) { return this._state[k] != null ? this._state[k] : d; },
+  _save(k,v) { 
+    this._state[k] = v; 
+    try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+    
+    clearTimeout(this._saveTimer);
+    this._saveTimer = setTimeout(() => {
+      docRef.set(this._state).catch(e => console.error("Firebase sync error", e));
+    }, 1500);
+  },
+  
+  getTasks()     { return this._load('nx2_tasks',[]); },
+  saveTasks(v)   { this._save('nx2_tasks',v); },
+  getGoals()     { return this._load('nx2_goals',[]); },
+  saveGoals(v)   { this._save('nx2_goals',v); },
+  getLogs()      { return this._load('nx2_logs',[]); },
+  saveLogs(v)    { this._save('nx2_logs',v); },
+  getSessions()  { return this._load('nx2_sessions',[]); },
+  saveSessions(v){ this._save('nx2_sessions',v); },
+  getStreak()    { return this._load('nx2_streak',{count:0,lastDate:null}); },
+  saveStreak(v)  { this._save('nx2_streak',v); },
+  getMeta()      { return this._load('nx2_meta',{lastPlanning:null,notifSeen:[]}); },
+  saveMeta(v)    { this._save('nx2_meta',v); },
+  getFocusState(){ return this._load('nx2_focus',null); },
+  saveFocusState(v){ this._save('nx2_focus',v); },
+  
+  initLocal() {
+    ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus'].forEach(k => {
+      try{ const v=localStorage.getItem(k); if(v!=null) this._state[k] = JSON.parse(v); }catch(e){}
+    });
   }
 };
 
-// Streak Manager
+DB.initLocal();
+
+let _fbFirstLoad = true;
+docRef.onSnapshot(doc => {
+  if (doc.exists) {
+    const data = doc.data();
+    Object.keys(data).forEach(k => {
+      DB._state[k] = data[k];
+      try{ localStorage.setItem(k,JSON.stringify(data[k])); }catch(e){}
+    });
+    if (!_fbFirstLoad && typeof refreshAll === 'function') {
+      refreshAll();
+    }
+  } else if (_fbFirstLoad) {
+    docRef.set(DB._state).catch(e => console.error("Initial push failed", e));
+  }
+  _fbFirstLoad = false;
+});
+
+// ═══════════════════════════════════════════
+// LOG MANAGER
+// ═══════════════════════════════════════════
+const LM = {
+  log(action, taskId, extra={}) {
+    const logs = DB.getLogs();
+    logs.push({id:uuid(), action, taskId, timestamp:Date.now(), ...extra});
+    if(logs.length > 1500) logs.splice(0, logs.length-1500);
+    DB.saveLogs(logs);
+  },
+  getFiltered(filter) {
+    const logs = DB.getLogs().slice().reverse();
+    if(filter==='today') return logs.filter(l=>isToday(l.timestamp));
+    if(filter==='week')  return logs.filter(l=>isThisWeek(l.timestamp));
+    return logs;
+  },
+};
+
+// ═══════════════════════════════════════════
+// STREAK MANAGER
+// ═══════════════════════════════════════════
 const SM = {
-  async update() {
-    const today = todayStr();
-    let newCount = streakData.count;
-    if(streakData.lastDate === today) return streakData.count;
-    const yest = daysAgoStr(1);
-    newCount = (streakData.lastDate === yest) ? streakData.count + 1 : 1;
-    const newStreak = { count: newCount, lastDate: today };
-    await updateStreak(newStreak);
-    return newCount;
+  update() {
+    const s=DB.getStreak(), today=todayStr();
+    if(s.lastDate===today) return s.count;
+    const yest=daysAgoStr(1);
+    s.count = (s.lastDate===yest) ? s.count+1 : 1;
+    s.lastDate=today;
+    DB.saveStreak(s);
+    return s.count;
   },
-  get(){ return streakData; }
+  get(){ return DB.getStreak(); },
 };
 
-// Task Manager
-const TM = {
-  async create(data) {
-    const task = {
-      title: (data.title||'').trim() || 'Untitled',
-      description: data.description||'',
-      level: data.level||'daily',
-      parentId: data.parentId||null,
-      priority: data.priority||'medium',
-      status: 'pending',
-      dueDate: data.dueDate||null,
-      dueTime: data.dueTime||null,
-      createdAt: Date.now(),
-      estimatedTime: parseInt(data.estimatedTime)||0,
-      lastCompletedDate: null,
-      recurrence: data.recurrence||'none',
-      delayCount: 0,
-      goalId: data.goalId||null,
-      order: Date.now(),
-    };
-    const newTask = await addTask(task);
-    await LM.log('created', newTask.id);
-    return newTask;
-  },
-
-  async update(id, data) {
-    await updateTask(id, data);
-  },
-
-  async delete(id) {
-    await deleteTask(id);
-  },
-
-  async toggle(id) {
-    const t = tasksData.find(t=>t.id===id);
-    if(!t) return;
-    const done = t.status !== 'completed';
-    const updates = {
-      status: done ? 'completed' : 'pending',
-      lastCompletedDate: done ? todayStr() : null,
-    };
-    await this.update(id, updates);
-    if(done) { 
-      await LM.log('completed', id); 
-      await SM.update(); 
-      toast('✓ Task completed!','s');
-    } else await LM.log('uncompleted', id);
-  },
-
-  async start(id) { 
-    await this.update(id, {status:'in-progress'}); 
-    await LM.log('started', id); 
-  },
-
-  async skip(id) {
-    const t = tasksData.find(t=>t.id===id);
-    if(!t) return;
-    await this.update(id, {delayCount:(t.delayCount||0)+1});
-    await LM.log('skipped', id);
-    if((t.delayCount||0)+1 >= 3) toast('⚠️ Delayed 3+ times — consider breaking it down','w',4000);
-    else toast('Task skipped','');
-  },
-
-  get(id) { return tasksData.find(t=>t.id===id)||null; },
-
-  roots() { return tasksData.filter(t=>!t.parentId).sort((a,b)=>a.order-b.order); },
-
-  children(pid) { return tasksData.filter(t=>t.parentId===pid).sort((a,b)=>a.order-b.order); },
-
-  progress(id) {
-    const calc = (tid) => {
-      const ch = tasksData.filter(t=>t.parentId===tid);
-      if(!ch.length) {
-        const t = tasksData.find(t=>t.id===tid);
-        return t?.status==='completed' ? 100 : 0;
-      }
-      return Math.round(ch.reduce((s,c)=>s+calc(c.id),0)/ch.length);
-    };
-    return calc(id);
-  },
-
-  MIT() {
-    const tasks = tasksData.filter(t=>t.status!=='completed');
-    if(!tasks.length) return null;
-    const sc = t => {
-      let s = {high:3,medium:2,low:1}[t.priority]||1;
-      if(isOverdue(t.dueDate)) s+=4;
-      else if(t.dueDate===todayStr()) s+=2;
-      if(t.status==='in-progress') s+=1;
-      return s;
-    };
-    return tasks.sort((a,b)=>sc(b)-sc(a))[0];
-  },
-
-  stats() {
-    return {
-      completedToday: tasksData.filter(t=>t.lastCompletedDate===todayStr()).length,
-      inProgress:     tasksData.filter(t=>t.status==='in-progress').length,
-      completed:      tasksData.filter(t=>t.status==='completed').length,
-      overdue:        tasksData.filter(t=>isOverdue(t.dueDate)&&t.status!=='completed').length,
-      total:          tasksData.length,
-    };
-  },
-
-  async handleRecurring() {
-    const today = todayStr();
-    for(const t of tasksData) {
-      if(t.recurrence==='none' || t.status!=='completed' || !t.lastCompletedDate) continue;
-      let reset = false;
-      if(t.recurrence==='daily' && t.lastCompletedDate < today) reset=true;
-      else if(t.recurrence==='weekly') {
-        const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
-        if(diff >= 7) reset=true;
-      } else if(t.recurrence==='monthly') {
-        const l=new Date(t.lastCompletedDate), n=new Date(today);
-        if(n.getMonth()!==l.getMonth()||n.getFullYear()!==l.getFullYear()) reset=true;
-      }
-      if(reset) { 
-        await this.update(t.id, {status:'pending', lastCompletedDate:null});
-      }
-    }
-  },
-
-  weeklyCompletions() {
-    return Array.from({length:7},(_,i)=>{
-      const day = daysAgoStr(6-i);
-      const d = new Date(); d.setDate(d.getDate()-(6-i));
-      return {
-        label: d.toLocaleDateString([],{weekday:'short'}),
-        val: logsData.filter(l=>l.action==='completed'&&new Date(l.timestamp).toISOString().split('T')[0]===day).length,
-      };
-    });
-  },
-
-  weeklyFocus() {
-    return Array.from({length:7},(_,i)=>{
-      const day = daysAgoStr(6-i);
-      const d = new Date(); d.setDate(d.getDate()-(6-i));
-      const total = sessionsData.filter(s=>new Date(s.startTime).toISOString().split('T')[0]===day).reduce((s,x)=>s+(x.duration||0),0);
-      return { label: d.toLocaleDateString([],{weekday:'short'}), val: Math.round(total/60) };
-    });
-  },
-
-  levelStats() {
-    return ['daily','weekly','monthly'].map(lv=>{
-      const lt = tasksData.filter(t=>t.level===lv);
-      const done = lt.filter(t=>t.status==='completed').length;
-      return { level:lv, total:lt.length, done, pct: lt.length ? Math.round(done/lt.length*100) : 0 };
-    });
-  },
-};
-
-// Goal Manager
-const GM = {
-  async create(data) {
-    const goal = {
-      title: data.title||'Goal', 
-      description: data.description||'',
-      dueDate: data.dueDate||null, 
-      color: data.color||'amber', 
-      createdAt: Date.now(),
-      specific: data.specific||'', 
-      metric: data.metric||'', 
-      target: Number(data.target)||0,
-      unit: data.unit||'', 
-      current: Number(data.current)||0,
-      achievable: data.achievable||'', 
-      relevant: data.relevant||'',
-    };
-    const newGoalRef = db.ref('goals').push();
-    await newGoalRef.set(goal);
-    return { id: newGoalRef.key, ...goal };
-  },
-  
-  async update(id, data) {
-    await db.ref(`goals/${id}`).update(data);
-  },
-  
-  async delete(id) {
-    await db.ref(`goals/${id}`).remove();
-  },
-  
-  smartScore(g) {
-    return [
-      !!g.title?.trim(),
-      !!(g.metric?.trim() && g.target>0),
-      !!g.achievable?.trim(),
-      !!g.relevant?.trim(),
-      !!g.dueDate,
-    ].filter(Boolean).length;
-  },
-  
-  progress(gid) {
-    const tasks = tasksData.filter(t=>t.goalId===gid);
-    if(!tasks.length) return {total:0, completed:0, pct:0};
-    const c = tasks.filter(t=>t.status==='completed').length;
-    return {total:tasks.length, completed:c, pct:Math.round(c/tasks.length*100)};
-  },
-};
-
-// Focus Manager
-const FM = {
-  s: { taskId:null, elapsed:0, running:false, interval:null, estimated:0 },
-
-  loadFromFirebase() {
-    if(!focusStateData) return;
-    this.s = { ...focusStateData, interval:null };
-    if(this.s.running && this.s._savedAt) {
-      this.s.elapsed = this.s.elapsed + Math.floor((Date.now()-this.s._savedAt)/1000);
-    }
-    this.updTopBar();
-    if(this.s.taskId) this._startInterval();
-  },
-
-  async _save() {
-    await updateFocusState({...this.s, interval:null, _savedAt:Date.now()});
-  },
-
-  async startTask(taskId) {
-    if(this.s.running && this.s.taskId!==taskId) await this.finish(false);
-    const t = TM.get(taskId);
-    this.s.taskId = taskId;
-    this.s.elapsed = 0;
-    this.s.running = false;
-    this.s.estimated = t ? (t.estimatedTime||0)*60 : 0;
-    await TM.start(taskId);
-    this.openOverlay();
-    await this._save();
-  },
-
-  openOverlay() {
-    const t = TM.get(this.s.taskId);
-    document.getElementById('fo').classList.add('on');
-    document.getElementById('fo-task').textContent = t ? t.title : '—';
-    this._updTimerDisplay();
-    this._updButtons();
-  },
-
-  closeOverlay() { document.getElementById('fo').classList.remove('on'); },
-
-  startTimer() {
-    if(!this.s.taskId) return;
-    this.s.running = true;
-    LM.log('focus_start', this.s.taskId);
-    this._startInterval();
-    this._updButtons();
-    this.updTopBar();
-    this._save();
-  },
-
-  _startInterval() {
-    if(this.s.interval) clearInterval(this.s.interval);
-    this.s.interval = setInterval(()=>{
-      if(!this.s.running) return;
-      this.s.elapsed++;
-      this._updTimerDisplay();
-      this.updTopBar();
-      if(this.s.elapsed % 30 === 0) this._save();
-    }, 1000);
-  },
-
-  togglePause() {
-    this.s.running = !this.s.running;
-    if(this.s.running) { this._startInterval(); toast('▶ Focus resumed',''); }
-    else { clearInterval(this.s.interval); toast('⏸ Paused',''); }
-    this._updButtons();
-    this._save();
-  },
-
-  async finish(log=true) {
-    clearInterval(this.s.interval);
-    if(log && this.s.taskId) {
-      const sess = {
-        id: uuid(), taskId:this.s.taskId,
-        startTime: Date.now()-this.s.elapsed*1000,
-        endTime: Date.now(), duration: this.s.elapsed,
-      };
-      await addSession(sess);
-      await LM.log('focus_end', this.s.taskId, {duration:this.s.elapsed});
-      toast(`🎯 Focus done — ${fmtDur(this.s.elapsed)}`,'s');
-    }
-    this.s = {taskId:null, elapsed:0, running:false, interval:null, estimated:0};
-    await updateFocusState(null);
-    this.closeOverlay();
-    this.updTopBar();
-    refreshAll();
-  },
-
-  todayFocusTime() {
-    return sessionsData.filter(s=>isToday(s.startTime)).reduce((s,x)=>s+(x.duration||0),0);
-  },
-
-  _updTimerDisplay() {
-    const t = fmtTime(this.s.elapsed);
-    const el = document.getElementById('fo-timer');
-    if(el) el.textContent = t;
-    const tb = document.getElementById('tb-timer');
-    if(tb) tb.textContent = t;
-    const pb = document.getElementById('fo-pb');
-    if(pb && this.s.estimated > 0) {
-      pb.style.width = Math.min(100, Math.round(this.s.elapsed/this.s.estimated*100))+'%';
-    }
-  },
-
-  updTopBar() {
-    const fb = document.getElementById('tb-focus');
-    const fe = document.getElementById('tb-empty');
-    if(!fb||!fe) return;
-    if(this.s.taskId) {
-      fb.style.display='flex'; fe.style.display='none';
-      const t = TM.get(this.s.taskId);
-      document.getElementById('tb-tname').textContent = t ? t.title : '—';
-      document.getElementById('tb-timer').textContent = fmtTime(this.s.elapsed);
-    } else {
-      fb.style.display='none'; fe.style.display='block';
-    }
-  },
-
-  _updButtons() {
-    const st = document.getElementById('fo-start');
-    const ps = document.getElementById('fo-pause');
-    if(!st||!ps) return;
-    if(this.s.running) {
-      st.style.display='none'; ps.style.display=''; ps.textContent='⏸ PAUSE';
-    } else if(this.s.elapsed > 0) {
-      st.style.display='none'; ps.style.display=''; ps.textContent='▶ RESUME';
-    } else {
-      st.style.display=''; ps.style.display='none';
-    }
-  },
-};
-
-// Notification Manager
+// ═══════════════════════════════════════════
+// NOTIFICATION MANAGER
+// ═══════════════════════════════════════════
 const NM = {
   _interval: null,
   _shownToday: new Set(),
@@ -1246,11 +896,12 @@ const NM = {
 
   _check() {
     if(Notification.permission!=='granted') return;
+    const tasks = DB.getTasks();
     const now = new Date();
     const today = todayStr();
     const nowMin = now.getHours()*60 + now.getMinutes();
 
-    tasksData.forEach(t => {
+    tasks.forEach(t => {
       if(t.status==='completed' || !t.dueDate || !t.dueTime) return;
       if(t.dueDate !== today) return;
 
@@ -1258,6 +909,7 @@ const NM = {
       const taskMin = h*60+m;
       const diff = taskMin - nowMin;
 
+      // 30-min reminder
       if(diff >= 28 && diff <= 32) {
         const key = `rem-${t.id}-${today}`;
         if(!this._shownToday.has(key)) {
@@ -1270,7 +922,8 @@ const NM = {
   },
 
   checkOverdueAtDayStart() {
-    const overdue = tasksData.filter(t => isOverdue(t.dueDate) && t.status!=='completed');
+    const tasks = DB.getTasks();
+    const overdue = tasks.filter(t => isOverdue(t.dueDate) && t.status!=='completed');
     if(!overdue.length) return;
     const names = overdue.slice(0,3).map(t=>t.title).join(', ');
     const extra = overdue.length>3 ? ` +${overdue.length-3} more` : '';
@@ -1286,7 +939,535 @@ const NM = {
   },
 };
 
-// Render Functions
+// ═══════════════════════════════════════════
+// TASK MANAGER
+// ═══════════════════════════════════════════
+const TM = {
+  create(data) {
+    const t = {
+      id: uuid(),
+      title: (data.title||'').trim() || 'Untitled',
+      description: data.description||'',
+      level: data.level||'daily',
+      parentId: data.parentId||null,
+      priority: data.priority||'medium',
+      status: 'pending',
+      dueDate: data.dueDate||null,
+      dueTime: data.dueTime||null,
+      createdAt: Date.now(),
+      estimatedTime: parseInt(data.estimatedTime)||0,
+      lastCompletedDate: null,
+      recurrence: data.recurrence||'none',
+      delayCount: 0,
+      goalId: data.goalId||null,
+      order: Date.now(),
+    };
+    const tasks = DB.getTasks();
+    tasks.push(t);
+    DB.saveTasks(tasks);
+    LM.log('created', t.id);
+    return t;
+  },
+
+  update(id, data) {
+    const tasks = DB.getTasks();
+    const i = tasks.findIndex(t=>t.id===id);
+    if(i===-1) return null;
+    tasks[i] = {...tasks[i], ...data};
+    DB.saveTasks(tasks);
+    return tasks[i];
+  },
+
+  delete(id) {
+    const all = DB.getTasks();
+    const del = new Set();
+    const mark = (tid) => { del.add(tid); all.filter(t=>t.parentId===tid).forEach(t=>mark(t.id)); };
+    mark(id);
+    DB.saveTasks(all.filter(t=>!del.has(t.id)));
+  },
+
+  toggle(id) {
+    const t = DB.getTasks().find(t=>t.id===id);
+    if(!t) return;
+    const done = t.status !== 'completed';
+    this.update(id, {
+      status: done ? 'completed' : 'pending',
+      lastCompletedDate: done ? todayStr() : null,
+    });
+    if(done) { LM.log('completed', id); SM.update(); toast('✓ Task completed!','s'); }
+    else LM.log('uncompleted', id);
+  },
+
+  start(id) { this.update(id, {status:'in-progress'}); LM.log('started', id); },
+
+  skip(id) {
+    const t = DB.getTasks().find(t=>t.id===id);
+    if(!t) return;
+    this.update(id, {delayCount:(t.delayCount||0)+1});
+    LM.log('skipped', id);
+    if((t.delayCount||0)+1 >= 3) toast('⚠️ Delayed 3+ times — consider breaking it down','w',4000);
+    else toast('Task skipped','');
+  },
+
+  get(id) { return DB.getTasks().find(t=>t.id===id)||null; },
+
+  roots(filter='', search='') {
+    let tasks = DB.getTasks().filter(t=>!t.parentId);
+    return tasks.sort((a,b)=>a.order-b.order);
+  },
+
+  children(pid) { return DB.getTasks().filter(t=>t.parentId===pid).sort((a,b)=>a.order-b.order); },
+
+  progress(id) {
+    const tasks = DB.getTasks();
+    const calc = (tid) => {
+      const ch = tasks.filter(t=>t.parentId===tid);
+      if(!ch.length) {
+        const t = tasks.find(t=>t.id===tid);
+        return t?.status==='completed' ? 100 : 0;
+      }
+      return Math.round(ch.reduce((s,c)=>s+calc(c.id),0)/ch.length);
+    };
+    return calc(id);
+  },
+
+  MIT() {
+    const tasks = DB.getTasks().filter(t=>t.status!=='completed');
+    if(!tasks.length) return null;
+    const sc = t => {
+      let s = {high:3,medium:2,low:1}[t.priority]||1;
+      if(isOverdue(t.dueDate)) s+=4;
+      else if(t.dueDate===todayStr()) s+=2;
+      if(t.status==='in-progress') s+=1;
+      return s;
+    };
+    return tasks.sort((a,b)=>sc(b)-sc(a))[0];
+  },
+
+  stats() {
+    const tasks = DB.getTasks();
+    return {
+      completedToday: tasks.filter(t=>t.lastCompletedDate===todayStr()).length,
+      inProgress:     tasks.filter(t=>t.status==='in-progress').length,
+      completed:      tasks.filter(t=>t.status==='completed').length,
+      overdue:        tasks.filter(t=>isOverdue(t.dueDate)&&t.status!=='completed').length,
+      total:          tasks.length,
+    };
+  },
+
+  // ── RECURRING: Reset tasks that are due again
+  handleRecurring() {
+    const tasks = DB.getTasks();
+    const today = todayStr();
+    let changed = false;
+
+    tasks.forEach(t => {
+      if(t.recurrence==='none' || t.status!=='completed' || !t.lastCompletedDate) return;
+      let reset = false;
+      if(t.recurrence==='daily' && t.lastCompletedDate < today) reset=true;
+      else if(t.recurrence==='weekly') {
+        const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
+        if(diff >= 7) reset=true;
+      } else if(t.recurrence==='monthly') {
+        const l=new Date(t.lastCompletedDate), n=new Date(today);
+        if(n.getMonth()!==l.getMonth()||n.getFullYear()!==l.getFullYear()) reset=true;
+      }
+      if(reset) { t.status='pending'; t.lastCompletedDate=null; changed=true; }
+    });
+    if(changed) DB.saveTasks(tasks);
+  },
+
+  weeklyCompletions() {
+    const logs = DB.getLogs();
+    return Array.from({length:7},(_,i)=>{
+      const day = daysAgoStr(6-i);
+      const d = new Date(); d.setDate(d.getDate()-(6-i));
+      return {
+        label: d.toLocaleDateString([],{weekday:'short'}),
+        val: logs.filter(l=>l.action==='completed'&&new Date(l.timestamp).toISOString().split('T')[0]===day).length,
+      };
+    });
+  },
+
+  weeklyFocus() {
+    const sess = DB.getSessions();
+    return Array.from({length:7},(_,i)=>{
+      const day = daysAgoStr(6-i);
+      const d = new Date(); d.setDate(d.getDate()-(6-i));
+      const total = sess.filter(s=>new Date(s.startTime).toISOString().split('T')[0]===day).reduce((s,x)=>s+(x.duration||0),0);
+      return { label: d.toLocaleDateString([],{weekday:'short'}), val: Math.round(total/60) };
+    });
+  },
+
+  levelStats() {
+    const tasks = DB.getTasks();
+    return ['daily','weekly','monthly'].map(lv=>{
+      const lt = tasks.filter(t=>t.level===lv);
+      const done = lt.filter(t=>t.status==='completed').length;
+      return { level:lv, total:lt.length, done, pct: lt.length ? Math.round(done/lt.length*100) : 0 };
+    });
+  },
+};
+
+// ═══════════════════════════════════════════
+// FOCUS MANAGER
+// ═══════════════════════════════════════════
+const FM = {
+  s: { taskId:null, elapsed:0, running:false, interval:null, estimated:0 },
+
+  load() {
+    const saved = DB.getFocusState();
+    if(!saved) return;
+    this.s = {...saved, interval:null};
+    if(saved.running && saved._savedAt) {
+      this.s.elapsed = saved.elapsed + Math.floor((Date.now()-saved._savedAt)/1000);
+    }
+    this.updTopBar();
+    if(this.s.taskId) this._startInterval();
+  },
+
+  _save() {
+    DB.saveFocusState({...this.s, interval:null, _savedAt:Date.now()});
+  },
+
+  startTask(taskId) {
+    if(this.s.running && this.s.taskId!==taskId) this.finish(false);
+    const t = TM.get(taskId);
+    this.s.taskId = taskId;
+    this.s.elapsed = 0;
+    this.s.running = false;
+    this.s.estimated = t ? (t.estimatedTime||0)*60 : 0;
+    TM.start(taskId);
+    this.openOverlay();
+  },
+
+  openOverlay() {
+    const t = TM.get(this.s.taskId);
+    document.getElementById('fo').classList.add('on');
+    document.getElementById('fo-task').textContent = t ? t.title : '—';
+    this._updTimerDisplay();
+    this._updButtons();
+  },
+
+  closeOverlay() { document.getElementById('fo').classList.remove('on'); },
+
+  startTimer() {
+    if(!this.s.taskId) return;
+    this.s.running = true;
+    LM.log('focus_start', this.s.taskId);
+    this._startInterval();
+    this._updButtons();
+    this.updTopBar();
+    this._save();
+  },
+
+  _startInterval() {
+    if(this.s.interval) clearInterval(this.s.interval);
+    this.s.interval = setInterval(()=>{
+      if(!this.s.running) return;
+      this.s.elapsed++;
+      this._updTimerDisplay();
+      this.updTopBar();
+      if(this.s.elapsed % 30 === 0) this._save();
+    }, 1000);
+  },
+
+  togglePause() {
+    this.s.running = !this.s.running;
+    if(this.s.running) { this._startInterval(); toast('▶ Focus resumed',''); }
+    else { clearInterval(this.s.interval); toast('⏸ Paused',''); }
+    this._updButtons();
+    this._save();
+  },
+
+  finish(log=true) {
+    clearInterval(this.s.interval);
+    if(log && this.s.taskId) {
+      const sess = {
+        id: uuid(), taskId:this.s.taskId,
+        startTime: Date.now()-this.s.elapsed*1000,
+        endTime: Date.now(), duration: this.s.elapsed,
+      };
+      const sessions = DB.getSessions();
+      sessions.push(sess);
+      DB.saveSessions(sessions);
+      LM.log('focus_end', this.s.taskId, {duration:this.s.elapsed});
+      toast(`🎯 Focus done — ${fmtDur(this.s.elapsed)} logged`,'s');
+    }
+    this.s = {taskId:null, elapsed:0, running:false, interval:null, estimated:0};
+    DB.saveFocusState(null);
+    this.closeOverlay();
+    this.updTopBar();
+    renderView(_curView);
+  },
+
+  todayFocusTime() {
+    return DB.getSessions().filter(s=>isToday(s.startTime)).reduce((s,x)=>s+(x.duration||0),0);
+  },
+
+  _updTimerDisplay() {
+    const t = fmtTime(this.s.elapsed);
+    const el = document.getElementById('fo-timer');
+    if(el) el.textContent = t;
+    const tb = document.getElementById('tb-timer');
+    if(tb) tb.textContent = t;
+    // Progress bar in focus overlay
+    const pb = document.getElementById('fo-pb');
+    if(pb && this.s.estimated > 0) {
+      pb.style.width = Math.min(100, Math.round(this.s.elapsed/this.s.estimated*100))+'%';
+    }
+  },
+
+  updTopBar() {
+    const fb = document.getElementById('tb-focus');
+    const fe = document.getElementById('tb-empty');
+    if(!fb||!fe) return;
+    if(this.s.taskId) {
+      fb.style.display='flex'; fe.style.display='none';
+      const t = TM.get(this.s.taskId);
+      document.getElementById('tb-tname').textContent = t ? t.title : '—';
+      document.getElementById('tb-timer').textContent = fmtTime(this.s.elapsed);
+    } else {
+      fb.style.display='none'; fe.style.display='block';
+    }
+  },
+
+  _updButtons() {
+    const st = document.getElementById('fo-start');
+    const ps = document.getElementById('fo-pause');
+    if(!st||!ps) return;
+    if(this.s.running) {
+      st.style.display='none'; ps.style.display=''; ps.textContent='⏸ PAUSE';
+    } else if(this.s.elapsed > 0) {
+      st.style.display='none'; ps.style.display=''; ps.textContent='▶ RESUME';
+    } else {
+      st.style.display=''; ps.style.display='none';
+    }
+  },
+};
+
+// ═══════════════════════════════════════════
+// GOAL MANAGER
+// ═══════════════════════════════════════════
+const GM = {
+  create(data) {
+    const g = {
+      id:uuid(), title:data.title||'Goal', description:data.description||'',
+      dueDate:data.dueDate||null, color:data.color||'amber', createdAt:Date.now(),
+      specific:data.specific||'', metric:data.metric||'', target:Number(data.target)||0,
+      unit:data.unit||'', current:Number(data.current)||0,
+      achievable:data.achievable||'', relevant:data.relevant||'',
+    };
+    const goals = DB.getGoals(); goals.push(g); DB.saveGoals(goals); return g;
+  },
+  update(id,data) {
+    const gs=DB.getGoals(), i=gs.findIndex(g=>g.id===id);
+    if(i===-1) return; gs[i]={...gs[i],...data}; DB.saveGoals(gs);
+  },
+  delete(id) { DB.saveGoals(DB.getGoals().filter(g=>g.id!==id)); },
+  smartScore(g) {
+    return [
+      !!g.title?.trim(),
+      !!(g.metric?.trim() && g.target>0),
+      !!g.achievable?.trim(),
+      !!g.relevant?.trim(),
+      !!g.dueDate,
+    ].filter(Boolean).length;
+  },
+  progress(gid) {
+    const tasks = DB.getTasks().filter(t=>t.goalId===gid);
+    if(!tasks.length) return {total:0, completed:0, pct:0};
+    const c = tasks.filter(t=>t.status==='completed').length;
+    return {total:tasks.length, completed:c, pct:Math.round(c/tasks.length*100)};
+  },
+};
+
+// ═══════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════
+function showModal(id) { document.getElementById(id).classList.add('on'); }
+function closeModal(id) { document.getElementById(id).classList.remove('on'); }
+
+function updateSmartScore() {
+  const fields = {
+    title: document.getElementById('f-gtitle')?.value?.trim(),
+    metric: document.getElementById('f-gmetric')?.value?.trim(),
+    target: Number(document.getElementById('f-gtarget')?.value)||0,
+    achievable: document.getElementById('f-gachievable')?.value?.trim(),
+    relevant: document.getElementById('f-grelevant')?.value?.trim(),
+    dueDate: document.getElementById('f-gdue')?.value,
+  };
+  const score = [
+    !!fields.title,
+    !!(fields.metric && fields.target>0),
+    !!fields.achievable,
+    !!fields.relevant,
+    !!fields.dueDate,
+  ];
+  const dots = document.querySelectorAll('#smart-dots .smart-dot');
+  dots.forEach((d,i)=>{ d.classList.toggle('on', score[i]); });
+  const n = score.filter(Boolean).length;
+  const labels=['Not SMART','1/5','2/5 Needs Work','3/5 Partial','4/5 Almost','5/5 Perfect SMART! 🎯'];
+  const el = document.getElementById('smart-label');
+  if(el) el.textContent = `SMART Score: ${n}/5 — ${labels[n]}`;
+}
+
+function openTaskModal(parentId, editId=null, defaultLevel=null) {
+  document.getElementById('f-tid').value = editId||'';
+  document.getElementById('f-tpid').value = parentId||'';
+
+  // Populate goals
+  const gs = document.getElementById('f-tgoal');
+  gs.innerHTML = '<option value="">No goal</option>';
+  DB.getGoals().forEach(g=>{
+    const o=document.createElement('option'); o.value=g.id; o.textContent=g.title; gs.appendChild(o);
+  });
+
+  if(editId) {
+    const t = TM.get(editId);
+    if(t) {
+      document.getElementById('m-task-title').textContent = 'Edit Task';
+      document.getElementById('f-ttitle').value = t.title;
+      document.getElementById('f-tdesc').value = t.description||'';
+      document.getElementById('f-tlevel').value = t.level;
+      document.getElementById('f-tpri').value = t.priority;
+      document.getElementById('f-tdue').value = t.dueDate||'';
+      document.getElementById('f-ttime').value = t.dueTime||'';
+      document.getElementById('f-test').value = t.estimatedTime||'';
+      document.getElementById('f-trec').value = t.recurrence||'none';
+      document.getElementById('f-tgoal').value = t.goalId||'';
+    }
+  } else {
+    document.getElementById('m-task-title').textContent = parentId ? 'Add Subtask' : 'Add Task';
+    ['f-ttitle','f-tdesc','f-tdue','f-ttime','f-test'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('f-tlevel').value = defaultLevel || 'daily';
+    document.getElementById('f-tpri').value = 'medium';
+    document.getElementById('f-trec').value = 'none';
+    document.getElementById('f-tgoal').value = '';
+  }
+  document.getElementById('f-twarn').style.display='none';
+  document.getElementById('f-est-suggest').style.display='none';
+  showModal('m-task');
+  setTimeout(()=>document.getElementById('f-ttitle').focus(), 120);
+}
+
+function onEstChange(val) {
+  const v = parseInt(val)||0;
+  const warn = document.getElementById('f-twarn');
+  const sug = document.getElementById('f-est-suggest');
+  if(v>60) {
+    warn.style.display='block';
+    warn.innerHTML = `<div class="fwarn">⚠️ Over 60 min — consider splitting into smaller subtasks for better focus.</div>`;
+  } else warn.style.display='none';
+
+  // Auto-suggest based on task name
+  const name = (document.getElementById('f-ttitle')?.value||'').toLowerCase();
+  let suggest = '';
+  if(name.includes('read')||name.includes('study')) suggest='Reading/Study tasks usually take 30–60 min.';
+  else if(name.includes('code')||name.includes('implement')) suggest='Coding tasks: 45–90 min recommended.';
+  else if(name.includes('meeting')||name.includes('call')) suggest='Meetings: 30–60 min typical.';
+  else if(name.includes('review')||name.includes('check')) suggest='Reviews: 15–30 min typical.';
+
+  if(suggest && !v) {
+    sug.style.display='block';
+    sug.innerHTML=`<div class="fhint" style="margin-top:3px">💡 ${suggest}</div>`;
+  } else sug.style.display='none';
+}
+
+function openGoalModal(editId=null) {
+  document.getElementById('f-gid').value = editId||'';
+  if(editId) {
+    const g = DB.getGoals().find(g=>g.id===editId);
+    if(g) {
+      document.getElementById('m-goal-title').textContent='Edit SMART Goal';
+      document.getElementById('f-gtitle').value=g.title;
+      document.getElementById('f-gdesc').value=g.description||'';
+      document.getElementById('f-gdue').value=g.dueDate||'';
+      document.getElementById('f-gcolor').value=g.color||'amber';
+      document.getElementById('f-gspecific').value=g.specific||'';
+      document.getElementById('f-gmetric').value=g.metric||'';
+      document.getElementById('f-gtarget').value=g.target||'';
+      document.getElementById('f-gunit').value=g.unit||'';
+      document.getElementById('f-gcurrent').value=g.current||'';
+      document.getElementById('f-gachievable').value=g.achievable||'';
+      document.getElementById('f-grelevant').value=g.relevant||'';
+    }
+  } else {
+    document.getElementById('m-goal-title').textContent='Add SMART Goal';
+    ['f-gtitle','f-gdesc','f-gdue','f-gspecific','f-gmetric','f-gtarget','f-gunit','f-gcurrent','f-gachievable','f-grelevant'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('f-gcolor').value='amber';
+  }
+  updateSmartScore();
+  showModal('m-goal');
+  setTimeout(()=>document.getElementById('f-gtitle').focus(),120);
+}
+
+function saveTask() {
+  const title = document.getElementById('f-ttitle').value.trim();
+  if(!title) { toast('Please enter a task title','e'); return; }
+  const id = document.getElementById('f-tid').value;
+  const data = {
+    title,
+    description: document.getElementById('f-tdesc').value.trim(),
+    level:        document.getElementById('f-tlevel').value,
+    priority:     document.getElementById('f-tpri').value,
+    dueDate:      document.getElementById('f-tdue').value||null,
+    dueTime:      document.getElementById('f-ttime').value||null,
+    estimatedTime:document.getElementById('f-test').value||0,
+    recurrence:   document.getElementById('f-trec').value,
+    goalId:       document.getElementById('f-tgoal').value||null,
+    parentId:     document.getElementById('f-tpid').value||null,
+  };
+  if(id) { TM.update(id, data); toast('Task updated','s'); }
+  else   { TM.create(data); toast('Task created','s'); }
+  closeModal('m-task');
+  refreshAll();
+}
+
+function saveGoal() {
+  const title = document.getElementById('f-gtitle').value.trim();
+  if(!title) { toast('Goal title required','e'); return; }
+  const id = document.getElementById('f-gid').value;
+  const data = {
+    title,
+    description: document.getElementById('f-gdesc').value.trim(),
+    dueDate:     document.getElementById('f-gdue').value||null,
+    color:       document.getElementById('f-gcolor').value,
+    specific:    document.getElementById('f-gspecific').value.trim(),
+    metric:      document.getElementById('f-gmetric').value.trim(),
+    target:      Number(document.getElementById('f-gtarget').value)||0,
+    unit:        document.getElementById('f-gunit').value.trim(),
+    current:     Number(document.getElementById('f-gcurrent').value)||0,
+    achievable:  document.getElementById('f-gachievable').value.trim(),
+    relevant:    document.getElementById('f-grelevant').value.trim(),
+  };
+  if(id) { GM.update(id,data); toast('Goal updated','s'); }
+  else   { GM.create(data); toast('Goal created','s'); }
+  closeModal('m-goal');
+  renderGoals();
+}
+
+function quickAdd() {
+  const title = document.getElementById('qa-input').value.trim();
+  if(!title) return;
+  const t = TM.create({
+    title,
+    priority: document.getElementById('qa-pri').value,
+    level:    document.getElementById('qa-level').value,
+    dueTime:  document.getElementById('qa-time').value||null,
+    dueDate:  todayStr(),
+  });
+  document.getElementById('qa-input').value='';
+  document.getElementById('qa-time').value='';
+  toast('Task added','s');
+  refreshAll();
+}
+
+// ═══════════════════════════════════════════
+// RENDER TIMELINE
+// ═══════════════════════════════════════════
 function renderTimeline(logs, containerId) {
   const el = document.getElementById(containerId);
   if(!el) return;
@@ -1294,6 +1475,7 @@ function renderTimeline(logs, containerId) {
     el.innerHTML='<div style="color:var(--tm);font-size:12px;padding:8px 0">No activity recorded yet.</div>';
     return;
   }
+  const tasks = DB.getTasks();
   const dotCls = {created:'cr',started:'st',completed:'co',focus_start:'fo',focus_end:'fo',skipped:'sk',uncompleted:''};
   const actionLbl = {
     created:'Created',started:'▶ Started',completed:'✓ Completed',
@@ -1301,7 +1483,7 @@ function renderTimeline(logs, containerId) {
     skipped:'↷ Skipped',uncompleted:'↺ Reopened'
   };
   el.innerHTML = logs.slice(0,100).map(l=>{
-    const t = tasksData.find(x=>x.id===l.taskId);
+    const t = tasks.find(x=>x.id===l.taskId);
     const tn = t ? esc(t.title) : '<em style="color:var(--tm)">Deleted task</em>';
     const extra = l.duration ? ` — <span style="font-family:var(--mono)">${fmtDur(l.duration)}</span>` : '';
     return `<div class="tli">
@@ -1314,13 +1496,16 @@ function renderTimeline(logs, containerId) {
   }).join('');
 }
 
+// ═══════════════════════════════════════════
+// RENDER DASHBOARD
+// ═══════════════════════════════════════════
 function renderDashboard() {
   const stats = TM.stats();
   const streak = SM.get();
   const focus = FM.todayFocusTime();
-  const logs = logsData;
+  const logs = DB.getLogs();
   const wkDone = logs.filter(l=>isThisWeek(l.timestamp)&&l.action==='completed').length;
-  const dailyTasks = Math.max(tasksData.filter(t=>t.level==='daily').length, 1);
+  const dailyTasks = Math.max(DB.getTasks().filter(t=>t.level==='daily').length, 1);
   const wkPct = Math.min(100, Math.round(wkDone/(dailyTasks*7)*100));
 
   document.getElementById('sb-streak').textContent = streak.count;
@@ -1353,13 +1538,15 @@ function renderDashboard() {
     ms.innerHTML=`<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:100px"><div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No active tasks. Add one to get started!</div></div></div>`;
   }
 
+  // Notification permission bar
   const nb = document.getElementById('d-notif-bar');
   if('Notification' in window && Notification.permission==='default') {
     nb.style.display='flex';
     nb.innerHTML=`<div class="notif-bar"><span class="notif-bar-text">🔔 Enable notifications for 30-min reminders & overdue alerts</span><button class="btn btn-p btn-sm" onclick="NM.requestPermission()">Enable</button></div>`;
   } else nb.style.display='none';
 
-  const overdue = tasksData.filter(t=>isOverdue(t.dueDate)&&t.status!=='completed');
+  // Overdue alert
+  const overdue = DB.getTasks().filter(t=>isOverdue(t.dueDate)&&t.status!=='completed');
   const da = document.getElementById('d-overdue');
   if(overdue.length) {
     da.style.display='block';
@@ -1379,6 +1566,9 @@ function renderDashboard() {
   renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
 }
 
+// ═══════════════════════════════════════════
+// RENDER TASKS
+// ═══════════════════════════════════════════
 let expandedSet = new Set();
 let _taskFilter = 'all';
 let _searchQ = '';
@@ -1389,7 +1579,7 @@ function onSearch() {
 }
 
 function renderTasks() {
-  const all = tasksData;
+  const all = DB.getTasks();
   const tree = document.getElementById('t-tree');
   if(!all.length) {
     tree.innerHTML=`<div class="empty"><div class="empty-icon">✦</div><div class="empty-text">No tasks yet. Click "+ Task" to begin.</div></div>`;
@@ -1399,6 +1589,7 @@ function renderTasks() {
   const f = _taskFilter;
   const q = _searchQ;
 
+  // Filter function for a single task
   const matches = (t) => {
     if(q && !t.title.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
     if(f==='all') return true;
@@ -1413,6 +1604,7 @@ function renderTasks() {
     return true;
   };
 
+  // Build a set of IDs that match (incl. ancestors)
   let matchSet = null;
   if(f!=='all' || q) {
     const direct = all.filter(t=>matches(t));
@@ -1464,7 +1656,7 @@ function mkTaskEl(task, depth, all, matchSet) {
   const timeBadge = task.dueTime
     ? `<span class="ttime" style="color:${isOD?'var(--red)':'var(--tm)'}">⏰${task.dueTime}</span>`:'';
   const goalBadge = task.goalId
-    ? (() => { const g=goalsData.find(x=>x.id===task.goalId); return g?`<span class="badge" style="background:rgba(52,211,153,.1);color:var(--green);font-size:9px">◎</span>`:''; })() : '';
+    ? (() => { const g=DB.getGoals().find(x=>x.id===task.goalId); return g?`<span class="badge" style="background:rgba(52,211,153,.1);color:var(--green);font-size:9px">◎</span>`:''; })() : '';
 
   item.innerHTML=`<div class="trow">
     <button class="tex ${hasCh?(isExp?'open':''):'leaf'}" onclick="event.stopPropagation();toggleEx('${task.id}')" title="Expand">▶</button>
@@ -1516,22 +1708,24 @@ function toggleEx(id) {
   if(btn) btn.classList.toggle('open');
 }
 
-async function delTask(id) {
+function delTask(id) {
   if(!confirm('Delete this task and all its subtasks?')) return;
-  await TM.delete(id); 
-  toast('Task deleted',''); 
-  refreshAll();
+  TM.delete(id); toast('Task deleted',''); refreshAll();
 }
 
+// ═══════════════════════════════════════════
+// RENDER GOALS
+// ═══════════════════════════════════════════
 const COLORS = {amber:'var(--accent)',blue:'var(--blue)',green:'var(--green)',purple:'var(--purple)',red:'var(--red)'};
 
 function renderGoals() {
+  const goals = DB.getGoals();
   const el = document.getElementById('g-list');
-  if(!goalsData.length) {
+  if(!goals.length) {
     el.innerHTML=`<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">No SMART goals yet. Create your first goal!</div></div>`;
     return;
   }
-  el.innerHTML = goalsData.map(g=>{
+  el.innerHTML = goals.map(g=>{
     const p=GM.progress(g.id), c=COLORS[g.color]||COLORS.amber, sc=GM.smartScore(g);
     const smartDots=Array.from({length:5},(_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<sc?'var(--green)':'var(--b2)'}"></div>`).join('');
     const measPct = g.target>0 ? Math.min(100,Math.round((g.current/g.target)*100)) : null;
@@ -1581,18 +1775,21 @@ function renderGoals() {
   }).join('');
 }
 
-async function delGoal(id) {
+function delGoal(id) {
   if(!confirm('Delete this goal?')) return;
-  await GM.delete(id); 
-  toast('Goal deleted',''); 
-  renderGoals();
+  GM.delete(id); toast('Goal deleted',''); renderGoals();
 }
 
+// ═══════════════════════════════════════════
+// RENDER ANALYTICS
+// ═══════════════════════════════════════════
 function renderAnalytics() {
-  const totFocus = sessionsData.reduce((s,x)=>s+(x.duration||0),0);
-  const totComp = logsData.filter(l=>l.action==='completed').length;
+  const sessions = DB.getSessions();
+  const logs = DB.getLogs();
+  const totFocus = sessions.reduce((s,x)=>s+(x.duration||0),0);
+  const totComp = logs.filter(l=>l.action==='completed').length;
   const streak = SM.get();
-  const last30 = logsData.filter(l=>l.action==='completed'&&(Date.now()-l.timestamp)<30*864e5).length;
+  const last30 = logs.filter(l=>l.action==='completed'&&(Date.now()-l.timestamp)<30*864e5).length;
   const avg30 = (last30/30).toFixed(1);
 
   document.getElementById('a-stats').innerHTML=`
@@ -1602,6 +1799,7 @@ function renderAnalytics() {
     <div class="sc cp"><div class="si">📅</div><div class="sv">${avg30}</div><div class="sl">Avg/Day (30d)</div></div>
   `;
 
+  // Level stats
   const ls = TM.levelStats();
   const levelEl = document.getElementById('level-stats');
   const lc = {daily:'var(--green)',weekly:'var(--blue)',monthly:'var(--purple)'};
@@ -1621,6 +1819,9 @@ function renderAnalytics() {
   }, 60);
 }
 
+// ═══════════════════════════════════════════
+// CHART ENGINE
+// ═══════════════════════════════════════════
 function drawBar(canvasId, dataArr, color) {
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
@@ -1676,195 +1877,24 @@ function _rRect(ctx,x,y,w,h,r){
   ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
 }
 
+// ═══════════════════════════════════════════
+// LOG VIEW
+// ═══════════════════════════════════════════
+let _curLogFilter = 'all';
+
 function renderLog(filter='all') {
   renderTimeline(LM.getFiltered(filter), 'log-tl');
 }
 
 function setLogFilter(btn, filter) {
   document.querySelectorAll('[data-lf]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); window._curLogFilter=filter; renderLog(filter);
+  btn.classList.add('active'); _curLogFilter=filter; renderLog(filter);
 }
 
-function showModal(id) { document.getElementById(id).classList.add('on'); }
-function closeModal(id) { document.getElementById(id).classList.remove('on'); }
-
-function updateSmartScore() {
-  const fields = {
-    title: document.getElementById('f-gtitle')?.value?.trim(),
-    metric: document.getElementById('f-gmetric')?.value?.trim(),
-    target: Number(document.getElementById('f-gtarget')?.value)||0,
-    achievable: document.getElementById('f-gachievable')?.value?.trim(),
-    relevant: document.getElementById('f-grelevant')?.value?.trim(),
-    dueDate: document.getElementById('f-gdue')?.value,
-  };
-  const score = [
-    !!fields.title,
-    !!(fields.metric && fields.target>0),
-    !!fields.achievable,
-    !!fields.relevant,
-    !!fields.dueDate,
-  ];
-  const dots = document.querySelectorAll('#smart-dots .smart-dot');
-  dots.forEach((d,i)=>{ d.classList.toggle('on', score[i]); });
-  const n = score.filter(Boolean).length;
-  const labels=['Not SMART','1/5','2/5 Needs Work','3/5 Partial','4/5 Almost','5/5 Perfect SMART! 🎯'];
-  const el = document.getElementById('smart-label');
-  if(el) el.textContent = `SMART Score: ${n}/5 — ${labels[n]}`;
-}
-
-function openTaskModal(parentId, editId=null, defaultLevel=null) {
-  document.getElementById('f-tid').value = editId||'';
-  document.getElementById('f-tpid').value = parentId||'';
-
-  const gs = document.getElementById('f-tgoal');
-  gs.innerHTML = '<option value="">No goal</option>';
-  goalsData.forEach(g=>{
-    const o=document.createElement('option'); o.value=g.id; o.textContent=g.title; gs.appendChild(o);
-  });
-
-  if(editId) {
-    const t = TM.get(editId);
-    if(t) {
-      document.getElementById('m-task-title').textContent = 'Edit Task';
-      document.getElementById('f-ttitle').value = t.title;
-      document.getElementById('f-tdesc').value = t.description||'';
-      document.getElementById('f-tlevel').value = t.level;
-      document.getElementById('f-tpri').value = t.priority;
-      document.getElementById('f-tdue').value = t.dueDate||'';
-      document.getElementById('f-ttime').value = t.dueTime||'';
-      document.getElementById('f-test').value = t.estimatedTime||'';
-      document.getElementById('f-trec').value = t.recurrence||'none';
-      document.getElementById('f-tgoal').value = t.goalId||'';
-    }
-  } else {
-    document.getElementById('m-task-title').textContent = parentId ? 'Add Subtask' : 'Add Task';
-    ['f-ttitle','f-tdesc','f-tdue','f-ttime','f-test'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    document.getElementById('f-tlevel').value = defaultLevel || 'daily';
-    document.getElementById('f-tpri').value = 'medium';
-    document.getElementById('f-trec').value = 'none';
-    document.getElementById('f-tgoal').value = '';
-  }
-  document.getElementById('f-twarn').style.display='none';
-  document.getElementById('f-est-suggest').style.display='none';
-  showModal('m-task');
-  setTimeout(()=>document.getElementById('f-ttitle').focus(), 120);
-}
-
-function onEstChange(val) {
-  const v = parseInt(val)||0;
-  const warn = document.getElementById('f-twarn');
-  const sug = document.getElementById('f-est-suggest');
-  if(v>60) {
-    warn.style.display='block';
-    warn.innerHTML = `<div class="fwarn">⚠️ Over 60 min — consider splitting into smaller subtasks for better focus.</div>`;
-  } else warn.style.display='none';
-
-  const name = (document.getElementById('f-ttitle')?.value||'').toLowerCase();
-  let suggest = '';
-  if(name.includes('read')||name.includes('study')) suggest='Reading/Study tasks usually take 30–60 min.';
-  else if(name.includes('code')||name.includes('implement')) suggest='Coding tasks: 45–90 min recommended.';
-  else if(name.includes('meeting')||name.includes('call')) suggest='Meetings: 30–60 min typical.';
-  else if(name.includes('review')||name.includes('check')) suggest='Reviews: 15–30 min typical.';
-
-  if(suggest && !v) {
-    sug.style.display='block';
-    sug.innerHTML=`<div class="fhint" style="margin-top:3px">💡 ${suggest}</div>`;
-  } else sug.style.display='none';
-}
-
-function openGoalModal(editId=null) {
-  document.getElementById('f-gid').value = editId||'';
-  if(editId) {
-    const g = goalsData.find(g=>g.id===editId);
-    if(g) {
-      document.getElementById('m-goal-title').textContent='Edit SMART Goal';
-      document.getElementById('f-gtitle').value=g.title;
-      document.getElementById('f-gdesc').value=g.description||'';
-      document.getElementById('f-gdue').value=g.dueDate||'';
-      document.getElementById('f-gcolor').value=g.color||'amber';
-      document.getElementById('f-gspecific').value=g.specific||'';
-      document.getElementById('f-gmetric').value=g.metric||'';
-      document.getElementById('f-gtarget').value=g.target||'';
-      document.getElementById('f-gunit').value=g.unit||'';
-      document.getElementById('f-gcurrent').value=g.current||'';
-      document.getElementById('f-gachievable').value=g.achievable||'';
-      document.getElementById('f-grelevant').value=g.relevant||'';
-    }
-  } else {
-    document.getElementById('m-goal-title').textContent='Add SMART Goal';
-    ['f-gtitle','f-gdesc','f-gdue','f-gspecific','f-gmetric','f-gtarget','f-gunit','f-gcurrent','f-gachievable','f-grelevant'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.value='';
-    });
-    document.getElementById('f-gcolor').value='amber';
-  }
-  updateSmartScore();
-  showModal('m-goal');
-  setTimeout(()=>document.getElementById('f-gtitle').focus(),120);
-}
-
-async function saveTask() {
-  const title = document.getElementById('f-ttitle').value.trim();
-  if(!title) { toast('Please enter a task title','e'); return; }
-  const id = document.getElementById('f-tid').value;
-  const data = {
-    title,
-    description: document.getElementById('f-tdesc').value.trim(),
-    level:        document.getElementById('f-tlevel').value,
-    priority:     document.getElementById('f-tpri').value,
-    dueDate:      document.getElementById('f-tdue').value||null,
-    dueTime:      document.getElementById('f-ttime').value||null,
-    estimatedTime:document.getElementById('f-test').value||0,
-    recurrence:   document.getElementById('f-trec').value,
-    goalId:       document.getElementById('f-tgoal').value||null,
-    parentId:     document.getElementById('f-tpid').value||null,
-  };
-  if(id) { await TM.update(id, data); toast('Task updated','s'); }
-  else   { await TM.create(data); toast('Task created','s'); }
-  closeModal('m-task');
-  refreshAll();
-}
-
-async function saveGoal() {
-  const title = document.getElementById('f-gtitle').value.trim();
-  if(!title) { toast('Goal title required','e'); return; }
-  const id = document.getElementById('f-gid').value;
-  const data = {
-    title,
-    description: document.getElementById('f-gdesc').value.trim(),
-    dueDate:     document.getElementById('f-gdue').value||null,
-    color:       document.getElementById('f-gcolor').value,
-    specific:    document.getElementById('f-gspecific').value.trim(),
-    metric:      document.getElementById('f-gmetric').value.trim(),
-    target:      Number(document.getElementById('f-gtarget').value)||0,
-    unit:        document.getElementById('f-gunit').value.trim(),
-    current:     Number(document.getElementById('f-gcurrent').value)||0,
-    achievable:  document.getElementById('f-gachievable').value.trim(),
-    relevant:    document.getElementById('f-grelevant').value.trim(),
-  };
-  if(id) { await GM.update(id,data); toast('Goal updated','s'); }
-  else   { await GM.create(data); toast('Goal created','s'); }
-  closeModal('m-goal');
-  renderGoals();
-}
-
-function quickAdd() {
-  const title = document.getElementById('qa-input').value.trim();
-  if(!title) return;
-  TM.create({
-    title,
-    priority: document.getElementById('qa-pri').value,
-    level:    document.getElementById('qa-level').value,
-    dueTime:  document.getElementById('qa-time').value||null,
-    dueDate:  todayStr(),
-  });
-  document.getElementById('qa-input').value='';
-  document.getElementById('qa-time').value='';
-  toast('Task added','s');
-  refreshAll();
-}
-
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
 let _curView = 'dashboard';
-let _curLogFilter = 'all';
 
 function switchView(name) {
   _curView = name;
@@ -1873,6 +1903,7 @@ function switchView(name) {
   if(vEl) vEl.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
   renderView(name);
+  // Close sidebar on mobile
   if(window.innerWidth<=768) closeSidebar();
 }
 
@@ -1886,10 +1917,14 @@ function renderView(name) {
 
 function refreshAll() {
   renderView(_curView);
+  // Always keep stats fresh in topbar
   FM.updTopBar();
   document.getElementById('sb-streak').textContent = SM.get().count;
 }
 
+// ═══════════════════════════════════════════
+// SIDEBAR MOBILE
+// ═══════════════════════════════════════════
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sb-overlay').classList.add('on');
@@ -1899,19 +1934,28 @@ function closeSidebar() {
   document.getElementById('sb-overlay').classList.remove('on');
 }
 
+// ═══════════════════════════════════════════
+// SHORTCUTS PANEL
+// ═══════════════════════════════════════════
 function toggleShortcuts() {
   document.getElementById('shortcut-panel').classList.toggle('on');
 }
 
+// ═══════════════════════════════════════════
+// PLANNING PROMPT
+// ═══════════════════════════════════════════
 function checkPlanning() {
-  if(metaData.lastPlanning !== todayStr()) {
+  const meta = DB.getMeta(), today = todayStr();
+  if(meta.lastPlanning !== today) {
     setTimeout(()=>showModal('m-plan'), 2000);
-    metaData.lastPlanning=todayStr(); 
-    updateMeta(metaData);
+    meta.lastPlanning=today; DB.saveMeta(meta);
   }
 }
 function goPlan() { closeModal('m-plan'); switchView('tasks'); setTimeout(()=>openTaskModal(null),300); }
 
+// ═══════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════
 function initKeyboard() {
   document.addEventListener('keydown', e => {
     const tag = document.activeElement?.tagName;
@@ -1940,63 +1984,45 @@ function initKeyboard() {
   });
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Sidebar nav
   document.querySelectorAll('.nav-item').forEach(it=>{
     it.addEventListener('click', ()=>switchView(it.dataset.view));
   });
 
+  // Task filters
   document.getElementById('t-filters').addEventListener('click', e=>{
     const b=e.target.closest('.fbtn'); if(!b) return;
     document.querySelectorAll('#t-filters .fbtn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); _taskFilter=b.dataset.f; renderTasks();
   });
 
+  // Modal backdrop close
   document.querySelectorAll('.mbk').forEach(bk=>{
     bk.addEventListener('click', e=>{ if(e.target===bk) bk.classList.remove('on'); });
   });
 
+  // Sidebar date
   document.getElementById('sb-date').textContent = new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
 
+  // Keyboard
   initKeyboard();
 
-  await TM.handleRecurring();
-  FM.loadFromFirebase();
+  // Boot
+  TM.handleRecurring();
+  FM.load();
   NM.init();
   renderDashboard();
   checkPlanning();
 
+  // Resize — redraw charts if analytics visible
   window.addEventListener('resize', ()=>{
     if(_curView==='analytics') setTimeout(()=>renderAnalytics(),100);
   });
 });
-
-// Make functions available globally
-window.TM = TM;
-window.FM = FM;
-window.NM = NM;
-window.GM = GM;
-window.LM = LM;
-window.SM = SM;
-window.openTaskModal = openTaskModal;
-window.openGoalModal = openGoalModal;
-window.saveTask = saveTask;
-window.saveGoal = saveGoal;
-window.quickAdd = quickAdd;
-window.switchView = switchView;
-window.closeModal = closeModal;
-window.openSidebar = openSidebar;
-window.closeSidebar = closeSidebar;
-window.toggleShortcuts = toggleShortcuts;
-window.onSearch = onSearch;
-window.toggleEx = toggleEx;
-window.delTask = delTask;
-window.delGoal = delGoal;
-window.setLogFilter = setLogFilter;
-window.onEstChange = onEstChange;
-window.updateSmartScore = updateSmartScore;
-window.goPlan = goPlan;
-window.refreshAll = refreshAll;
 </script>
 </body>
 </html>
