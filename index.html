@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>NEXUS — Discipline OS</title>
 <style>
-/* نفس الستايلات بالكامل زي ما هي - لم يتم تغيير أي شيء */
+/* نفس الستايلات الأصلية بالكامل - لم يتم تغيير أي شيء */
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -96,7 +96,7 @@ body{overflow:hidden}
 #notif-btn.granted{color:var(--green);border-color:rgba(52,211,153,.3)}
 #notif-btn.denied{color:var(--red);border-color:rgba(248,113,113,.3)}
 
-/* بقية الستايلات كما هي... */
+/* ── BUTTONS ──────────────────────────────── */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:var(--ui);font-size:13px;font-weight:600;transition:all var(--ease);white-space:nowrap;line-height:1}
 .btn-p{background:var(--accent);color:#000}.btn-p:hover{background:#D97706}
 .btn-s{background:var(--s2);color:var(--text);border:1px solid var(--b2)}.btn-s:hover{background:var(--s3)}
@@ -106,13 +106,19 @@ body{overflow:hidden}
 .btn-sm{padding:4px 10px;font-size:12px}
 .btn-xs{padding:2px 7px;font-size:11px}
 
-/* باقي الستايلات محذوفة للاختصار - نفس اللي عندك بالضبط */
+/* ── VIEWS ────────────────────────────────── */
 .view{display:none;flex:1;overflow-y:auto;padding:18px;flex-direction:column;gap:16px}
 .view.active{display:flex}
+
+/* ── SECTION HEADER ───────────────────────── */
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:10px;flex-wrap:wrap}
 .st{font-size:16px;font-weight:700;color:var(--text);flex-shrink:0}
 .st em{color:var(--accent);font-style:normal}
+
+/* ── CARDS ────────────────────────────────── */
 .card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:14px}
+
+/* ── STAT GRID ────────────────────────────── */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .sc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:14px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .sc .si{font-size:16px;margin-bottom:2px}
@@ -122,13 +128,19 @@ body{overflow:hidden}
 .sc.cb{border-color:rgba(96,165,250,.3);background:var(--blue-bg)}.sc.cb .sv{color:var(--blue)}
 .sc.cg{border-color:rgba(52,211,153,.3);background:var(--green-bg)}.sc.cg .sv{color:var(--green)}
 .sc.cp{border-color:rgba(167,139,250,.3);background:var(--purple-bg)}.sc.cp .sv{color:var(--purple)}
+
+/* ── MIT CARD ─────────────────────────────── */
 .mit{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.35);border-radius:var(--rl);padding:16px}
 .mit-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px}
 .mit-title{font-size:16px;font-weight:700;line-height:1.3;margin-bottom:9px}
 .mit-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── PROGRESS ─────────────────────────────── */
 .pb{background:var(--s3);border-radius:99px;overflow:hidden;height:5px}
 .pbf{height:100%;border-radius:99px;background:var(--accent);transition:width .6s cubic-bezier(.4,0,.2,1)}
 .pbf.b{background:var(--blue)}.pbf.g{background:var(--green)}.pbf.p{background:var(--purple)}
+
+/* ── OVERVIEW GRID ────────────────────────── */
 .ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .ov-card{background:var(--s1);border-radius:var(--rl);padding:14px;border:1px solid var(--b1)}
 .ov-n{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:3px}
@@ -136,15 +148,22 @@ body{overflow:hidden}
 .ov-card.cr{border-color:rgba(248,113,113,.3)}.ov-card.cr .ov-n{color:var(--red)}
 .ov-card.ca{border-color:rgba(245,158,11,.3)}.ov-card.ca .ov-n{color:var(--accent)}
 .ov-card.cg{border-color:rgba(52,211,153,.3)}.ov-card.cg .ov-n{color:var(--green)}
+
+/* ── SEARCH BAR ───────────────────────────── */
 .search-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .search-wrap{flex:1;min-width:180px;position:relative}
 .search-wrap input{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);color:var(--text);padding:7px 11px 7px 32px;font-family:var(--ui);font-size:13px;transition:border-color var(--ease)}
 .search-wrap input:focus{outline:none;border-color:var(--accent)}
 .search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+.qa-level-btns{display:flex;gap:5px;flex-wrap:wrap}
+
+/* ── TASK FILTERS ─────────────────────────── */
 .tfilters{display:flex;gap:6px;flex-wrap:wrap}
 .fbtn{padding:4px 11px;border-radius:99px;border:1px solid var(--b1);background:var(--s1);color:var(--td);cursor:pointer;font-size:12px;font-weight:500;transition:all var(--ease);font-family:var(--ui)}
 .fbtn:hover{border-color:var(--b2);color:var(--text)}
 .fbtn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+/* ── TASK TREE ────────────────────────────── */
 .task-tree{display:flex;flex-direction:column;gap:3px}
 .ti{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);transition:border-color var(--ease)}
 .ti:hover{border-color:var(--b2)}
@@ -180,6 +199,8 @@ body{overflow:hidden}
 .tpb{padding:0 10px 6px 32px}
 .trec-badge{font-size:9px;color:var(--blue);background:rgba(96,165,250,.1);padding:1px 5px;border-radius:99px;flex-shrink:0}
 .ttime{font-size:10px;color:var(--tm);flex-shrink:0}
+
+/* ── FOCUS OVERLAY ────────────────────────── */
 #fo{position:fixed;inset:0;background:rgba(4,6,12,.97);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;text-align:center}
 #fo.on{display:flex}
 .fo-label{font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--tm)}
@@ -193,6 +214,8 @@ body{overflow:hidden}
 .fob-close{background:var(--s3);color:var(--tm);border:1px solid var(--b1)}.fob-close:hover{color:var(--text)}
 .fo-note{font-size:11px;color:var(--tm)}
 .fo-prog{width:100%;max-width:380px;margin-top:4px}
+
+/* ── MODALS ───────────────────────────────── */
 .mbk{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(4px);overflow-y:auto}
 .mbk.on{display:flex}
 .modal{background:var(--s1);border:1px solid var(--b2);border-radius:var(--rl);width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.55);flex-shrink:0}
@@ -202,6 +225,8 @@ body{overflow:hidden}
 .mclose:hover{background:var(--s2);color:var(--text)}
 .mbody{padding:16px 18px;display:flex;flex-direction:column;gap:11px}
 .mfoot{padding:12px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;background:var(--s1)}
+
+/* ── FORMS ────────────────────────────────── */
 .fg{display:flex;flex-direction:column;gap:4px}
 .fl{font-size:10px;font-weight:600;color:var(--td);text-transform:uppercase;letter-spacing:.5px}
 .fi,.fsel,.fta{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);color:var(--text);padding:7px 10px;font-family:var(--ui);font-size:13px;transition:border-color var(--ease);width:100%}
@@ -217,6 +242,8 @@ body{overflow:hidden}
 .smart-dot{width:10px;height:10px;border-radius:50%;background:var(--b2);transition:background .3s}
 .smart-dot.on{background:var(--green)}
 .smart-label{font-size:11px;color:var(--td)}
+
+/* ── GOALS ────────────────────────────────── */
 .gc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:15px}
 .gc-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;gap:8px}
 .gc-title{font-size:15px;font-weight:700}
@@ -227,6 +254,8 @@ body{overflow:hidden}
 .gc-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gc-pct{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--accent)}
 .gc-smart-score{display:flex;align-items:center;gap:5px}
+
+/* ── TIMELINE ─────────────────────────────── */
 .tl{display:flex;flex-direction:column}
 .tli{display:flex;gap:10px;align-items:flex-start;padding:6px 0;position:relative}
 .tli:not(:last-child)::after{content:'';position:absolute;left:5px;top:22px;bottom:-6px;width:1px;background:var(--b1)}
@@ -239,34 +268,50 @@ body{overflow:hidden}
 .tl-content{flex:1;min-width:0}
 .tl-action{font-size:12px;color:var(--text);font-weight:500;line-height:1.4}
 .tl-time{font-size:10px;color:var(--tm);font-family:var(--mono);margin-top:1px}
+
+/* ── CHART ────────────────────────────────── */
 .chart-box{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:16px;overflow:hidden}
 .chart-title{font-size:11px;font-weight:600;color:var(--td);margin-bottom:12px;text-transform:uppercase;letter-spacing:.7px}
 canvas{width:100%!important;display:block;max-width:100%}
+
+/* ── SHORTCUT PANEL ───────────────────────── */
 #shortcut-panel{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:300;background:var(--s1);border:1px solid var(--b2);border-radius:var(--rl);padding:16px 20px;box-shadow:0 16px 50px rgba(0,0,0,.5);display:none;min-width:280px}
 #shortcut-panel.on{display:block}
 .kbrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 0}
 .kbkey{display:flex;gap:4px}
 .key{background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:11px;color:var(--td)}
 .kblbl{font-size:12px;color:var(--td)}
+
+/* ── TOAST ────────────────────────────────── */
 #toasts{position:fixed;bottom:16px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:300px}
 .toast{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.3);animation:tin .3s ease;pointer-events:all;word-break:break-word}
 .toast.s{border-color:rgba(52,211,153,.4)}
 .toast.e{border-color:rgba(248,113,113,.4)}
 .toast.w{border-color:rgba(245,158,11,.4)}
 @keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── PLAN MODAL ───────────────────────────── */
 .plan-m .mbody{align-items:center;padding:24px 18px;text-align:center}
 .plan-icon{font-size:40px;margin-bottom:7px}
 .plan-title{font-size:18px;font-weight:700;margin-bottom:5px}
 .plan-sub{font-size:13px;color:var(--td);line-height:1.6}
+
+/* ── EMPTY STATE ──────────────────────────── */
 .empty{padding:36px 20px;text-align:center;color:var(--tm)}
 .empty-icon{font-size:32px;margin-bottom:8px}
 .empty-text{font-size:12px}
+
+/* ── NOTIF BANNER ─────────────────────────── */
 .notif-bar{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .notif-bar-text{font-size:12px;color:var(--td)}
+
+/* ── OVERDUE ALERT ────────────────────────── */
 .overdue-alert{background:var(--red-bg);border:1px solid rgba(248,113,113,.3);border-radius:var(--rl);padding:13px 16px}
 .overdue-alert h4{color:var(--red);font-size:13px;margin-bottom:6px}
 .overdue-item{font-size:12px;color:var(--td);padding:3px 0;border-bottom:1px solid rgba(248,113,113,.1)}
 .overdue-item:last-child{border-bottom:none}
+
+/* ── RESPONSIVE ───────────────────────────── */
 @media (max-width:900px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .ov-grid{grid-template-columns:repeat(3,1fr)}
@@ -658,38 +703,75 @@ canvas{width:100%!important;display:block;max-width:100%}
 <div id="toasts"></div>
 
 <!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
-    authDomain: "timemanger-8226f.firebaseapp.com",
-    projectId: "timemanger-8226f",
-    storageBucket: "timemanger-8226f.firebasestorage.app",
-    messagingSenderId: "613624657906",
-    appId: "1:613624657906:web:c2319e2a08aab6485b1d6b",
-    measurementId: "G-N22HP52JS5"
-  };
-  
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  
-  // Export to window for global access
-  window.db = db;
-  window.ref = ref;
-  window.onValue = onValue;
-  window.set = set;
-  window.push = push;
-  window.remove = remove;
-  window.update = update;
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
 
-<script type="module">
-'use strict';
+<script>
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
+  authDomain: "timemanger-8226f.firebaseapp.com",
+  projectId: "timemanger-8226f",
+  storageBucket: "timemanger-8226f.firebasestorage.app",
+  messagingSenderId: "613624657906",
+  appId: "1:613624657906:web:c2319e2a08aab6485b1d6b",
+  measurementId: "G-N22HP52JS5"
+};
 
-// Firebase references
-import { db, ref, onValue, set, push, remove, update } from './firebase-module.js';
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// بيانات التطبيق
+let tasksData = [];
+let goalsData = [];
+let logsData = [];
+let sessionsData = [];
+let streakData = { count: 0, lastDate: null };
+let metaData = { lastPlanning: null, notifSeen: [] };
+let focusStateData = null;
+
+// استماع للتغييرات في الوقت الفعلي
+db.ref('tasks').on('value', (snapshot) => {
+  const data = snapshot.val();
+  tasksData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+  refreshAll();
+});
+
+db.ref('goals').on('value', (snapshot) => {
+  const data = snapshot.val();
+  goalsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+  if (window._curView === 'goals') renderGoals();
+  refreshAll();
+});
+
+db.ref('logs').on('value', (snapshot) => {
+  const data = snapshot.val();
+  logsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+  if (window._curView === 'log') renderLog(window._curLogFilter);
+  if (window._curView === 'dashboard') renderTimeline(getFilteredLogs('today').slice(0,10), 'd-tl');
+});
+
+db.ref('sessions').on('value', (snapshot) => {
+  const data = snapshot.val();
+  sessionsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+  if (window._curView === 'analytics') renderAnalytics();
+});
+
+db.ref('streak').on('value', (snapshot) => {
+  streakData = snapshot.val() || { count: 0, lastDate: null };
+  document.getElementById('sb-streak').textContent = streakData.count;
+  if (window._curView === 'dashboard') renderDashboard();
+});
+
+db.ref('meta').on('value', (snapshot) => {
+  metaData = snapshot.val() || { lastPlanning: null, notifSeen: [] };
+});
+
+db.ref('focusState').on('value', (snapshot) => {
+  focusStateData = snapshot.val();
+  if (FM && FM.loadFromFirebase) FM.loadFromFirebase();
+});
 
 // Helper functions
 const uuid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,9);
@@ -717,128 +799,49 @@ function toast(msg, type='', dur=2800) {
   setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),310); }, dur);
 }
 
-// ─────────────────────────────────────────────
-// DATABASE REFERENCES
-// ─────────────────────────────────────────────
-const tasksRef = ref(db, 'tasks');
-const goalsRef = ref(db, 'goals');
-const logsRef = ref(db, 'logs');
-const sessionsRef = ref(db, 'sessions');
-const streakRef = ref(db, 'streak');
-const metaRef = ref(db, 'meta');
-const focusStateRef = ref(db, 'focusState');
-
-// ─────────────────────────────────────────────
-// DATA SUBSCRIPTIONS
-// ─────────────────────────────────────────────
-let tasksData = [];
-let goalsData = [];
-let logsData = [];
-let sessionsData = [];
-let streakData = { count: 0, lastDate: null };
-let metaData = { lastPlanning: null, notifSeen: [] };
-let focusStateData = null;
-
-// Subscribe to tasks
-onValue(tasksRef, (snapshot) => {
-  const data = snapshot.val();
-  tasksData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  refreshAll();
-});
-
-// Subscribe to goals
-onValue(goalsRef, (snapshot) => {
-  const data = snapshot.val();
-  goalsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'goals') renderGoals();
-  refreshAll();
-});
-
-// Subscribe to logs
-onValue(logsRef, (snapshot) => {
-  const data = snapshot.val();
-  logsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'log') renderLog(window._curLogFilter);
-  if (window._curView === 'dashboard') renderTimeline(getFilteredLogs('today').slice(0,10), 'd-tl');
-});
-
-// Subscribe to sessions
-onValue(sessionsRef, (snapshot) => {
-  const data = snapshot.val();
-  sessionsData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-  if (window._curView === 'analytics') renderAnalytics();
-});
-
-// Subscribe to streak
-onValue(streakRef, (snapshot) => {
-  streakData = snapshot.val() || { count: 0, lastDate: null };
-  document.getElementById('sb-streak').textContent = streakData.count;
-  if (window._curView === 'dashboard') renderDashboard();
-});
-
-// Subscribe to meta
-onValue(metaRef, (snapshot) => {
-  metaData = snapshot.val() || { lastPlanning: null, notifSeen: [] };
-});
-
-// Subscribe to focus state
-onValue(focusStateRef, (snapshot) => {
-  focusStateData = snapshot.val();
-  if (FM && FM.loadFromFirebase) FM.loadFromFirebase();
-});
-
-// ─────────────────────────────────────────────
-// DATABASE OPERATIONS
-// ─────────────────────────────────────────────
-async function saveTasks(tasks) {
-  const updates = {};
-  tasks.forEach(task => {
-    updates[`tasks/${task.id}`] = task;
-  });
-  await update(ref(db), updates);
+function getFilteredLogs(filter) {
+  const logs = [...logsData].reverse();
+  if(filter==='today') return logs.filter(l=>isToday(l.timestamp));
+  if(filter==='week')  return logs.filter(l=>isThisWeek(l.timestamp));
+  return logs;
 }
 
+// Database operations
 async function addTask(task) {
-  const newTaskRef = push(tasksRef);
-  await set(newTaskRef, task);
+  const newTaskRef = db.ref('tasks').push();
+  await newTaskRef.set(task);
   return { id: newTaskRef.key, ...task };
 }
 
 async function updateTask(id, data) {
-  const taskRef = ref(db, `tasks/${id}`);
-  await update(taskRef, data);
+  await db.ref(`tasks/${id}`).update(data);
 }
 
 async function deleteTask(id) {
-  const taskRef = ref(db, `tasks/${id}`);
-  await remove(taskRef);
+  await db.ref(`tasks/${id}`).remove();
 }
 
 async function addLog(log) {
-  const logRef = push(logsRef);
-  await set(logRef, log);
+  await db.ref('logs').push().set(log);
 }
 
 async function addSession(session) {
-  const sessionRef = push(sessionsRef);
-  await set(sessionRef, session);
+  await db.ref('sessions').push().set(session);
 }
 
 async function updateStreak(streak) {
-  await set(streakRef, streak);
+  await db.ref('streak').set(streak);
 }
 
 async function updateMeta(meta) {
-  await set(metaRef, meta);
+  await db.ref('meta').set(meta);
 }
 
 async function updateFocusState(state) {
-  await set(focusStateRef, state);
+  await db.ref('focusState').set(state);
 }
 
-// ─────────────────────────────────────────────
-// LOG MANAGER
-// ─────────────────────────────────────────────
+// Log Manager
 const LM = {
   async log(action, taskId, extra={}) {
     await addLog({
@@ -849,18 +852,12 @@ const LM = {
       ...extra
     });
   },
-  
   getFiltered(filter) {
-    const logs = [...logsData].reverse();
-    if(filter==='today') return logs.filter(l=>isToday(l.timestamp));
-    if(filter==='week')  return logs.filter(l=>isThisWeek(l.timestamp));
-    return logs;
+    return getFilteredLogs(filter);
   }
 };
 
-// ─────────────────────────────────────────────
-// STREAK MANAGER
-// ─────────────────────────────────────────────
+// Streak Manager
 const SM = {
   async update() {
     const today = todayStr();
@@ -875,9 +872,7 @@ const SM = {
   get(){ return streakData; }
 };
 
-// ─────────────────────────────────────────────
-// TASK MANAGER
-// ─────────────────────────────────────────────
+// Task Manager
 const TM = {
   async create(data) {
     const task = {
@@ -904,7 +899,6 @@ const TM = {
 
   async update(id, data) {
     await updateTask(id, data);
-    return { id, ...data };
   },
 
   async delete(id) {
@@ -943,9 +937,7 @@ const TM = {
 
   get(id) { return tasksData.find(t=>t.id===id)||null; },
 
-  roots(filter='', search='') {
-    return tasksData.filter(t=>!t.parentId).sort((a,b)=>a.order-b.order);
-  },
+  roots() { return tasksData.filter(t=>!t.parentId).sort((a,b)=>a.order-b.order); },
 
   children(pid) { return tasksData.filter(t=>t.parentId===pid).sort((a,b)=>a.order-b.order); },
 
@@ -986,8 +978,6 @@ const TM = {
 
   async handleRecurring() {
     const today = todayStr();
-    let changed = false;
-
     for(const t of tasksData) {
       if(t.recurrence==='none' || t.status!=='completed' || !t.lastCompletedDate) continue;
       let reset = false;
@@ -1001,7 +991,6 @@ const TM = {
       }
       if(reset) { 
         await this.update(t.id, {status:'pending', lastCompletedDate:null});
-        changed=true; 
       }
     }
   },
@@ -1035,9 +1024,7 @@ const TM = {
   },
 };
 
-// ─────────────────────────────────────────────
-// GOAL MANAGER
-// ─────────────────────────────────────────────
+// Goal Manager
 const GM = {
   async create(data) {
     const goal = {
@@ -1054,19 +1041,17 @@ const GM = {
       achievable: data.achievable||'', 
       relevant: data.relevant||'',
     };
-    const newGoalRef = push(goalsRef);
-    await set(newGoalRef, goal);
+    const newGoalRef = db.ref('goals').push();
+    await newGoalRef.set(goal);
     return { id: newGoalRef.key, ...goal };
   },
   
   async update(id, data) {
-    const goalRef = ref(db, `goals/${id}`);
-    await update(goalRef, data);
+    await db.ref(`goals/${id}`).update(data);
   },
   
   async delete(id) {
-    const goalRef = ref(db, `goals/${id}`);
-    await remove(goalRef);
+    await db.ref(`goals/${id}`).remove();
   },
   
   smartScore(g) {
@@ -1087,9 +1072,7 @@ const GM = {
   },
 };
 
-// ─────────────────────────────────────────────
-// FOCUS MANAGER
-// ─────────────────────────────────────────────
+// Focus Manager
 const FM = {
   s: { taskId:null, elapsed:0, running:false, interval:null, estimated:0 },
 
@@ -1221,9 +1204,7 @@ const FM = {
   },
 };
 
-// ─────────────────────────────────────────────
-// NOTIFICATION MANAGER (same as before)
-// ─────────────────────────────────────────────
+// Notification Manager
 const NM = {
   _interval: null,
   _shownToday: new Set(),
@@ -1305,9 +1286,7 @@ const NM = {
   },
 };
 
-// ─────────────────────────────────────────────
-// RENDER FUNCTIONS (same as before)
-// ─────────────────────────────────────────────
+// Render Functions
 function renderTimeline(logs, containerId) {
   const el = document.getElementById(containerId);
   if(!el) return;
@@ -1399,9 +1378,6 @@ function renderDashboard() {
 
   renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
 }
-
-// بقية الدوال (renderTasks, renderGoals, renderAnalytics, renderLog) بنفس الشكل
-// ولكن مع استخدام tasksData, goalsData بدلاً من DB.getTasks()
 
 let expandedSet = new Set();
 let _taskFilter = 'all';
@@ -1547,7 +1523,6 @@ async function delTask(id) {
   refreshAll();
 }
 
-// Goal rendering
 const COLORS = {amber:'var(--accent)',blue:'var(--blue)',green:'var(--green)',purple:'var(--purple)',red:'var(--red)'};
 
 function renderGoals() {
@@ -1710,7 +1685,6 @@ function setLogFilter(btn, filter) {
   btn.classList.add('active'); window._curLogFilter=filter; renderLog(filter);
 }
 
-// Modal and UI functions
 function showModal(id) { document.getElementById(id).classList.add('on'); }
 function closeModal(id) { document.getElementById(id).classList.remove('on'); }
 
@@ -1889,8 +1863,8 @@ function quickAdd() {
   refreshAll();
 }
 
-// Navigation
 let _curView = 'dashboard';
+let _curLogFilter = 'all';
 
 function switchView(name) {
   _curView = name;
@@ -1907,7 +1881,7 @@ function renderView(name) {
   else if(name==='tasks')     renderTasks();
   else if(name==='goals')     renderGoals();
   else if(name==='analytics') renderAnalytics();
-  else if(name==='log')       renderLog(window._curLogFilter);
+  else if(name==='log')       renderLog(_curLogFilter);
 }
 
 function refreshAll() {
@@ -1968,19 +1942,16 @@ function initKeyboard() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  // Sidebar nav
   document.querySelectorAll('.nav-item').forEach(it=>{
     it.addEventListener('click', ()=>switchView(it.dataset.view));
   });
 
-  // Task filters
   document.getElementById('t-filters').addEventListener('click', e=>{
     const b=e.target.closest('.fbtn'); if(!b) return;
     document.querySelectorAll('#t-filters .fbtn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); _taskFilter=b.dataset.f; renderTasks();
   });
 
-  // Modal backdrop close
   document.querySelectorAll('.mbk').forEach(bk=>{
     bk.addEventListener('click', e=>{ if(e.target===bk) bk.classList.remove('on'); });
   });
