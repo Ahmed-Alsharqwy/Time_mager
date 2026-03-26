@@ -8,26 +8,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg:        #080A0F;
-  --s1:        #0F1218;
-  --s2:        #161B24;
-  --s3:        #1D2330;
-  --b1:        #252D3A;
-  --b2:        #333D52;
-  --accent:    #F59E0B;
-  --a-dim:     rgba(245,158,11,.12);
-  --a-glow:    rgba(245,158,11,.30);
-  --blue:      #60A5FA;
-  --blue-bg:   rgba(96,165,250,.08);
-  --green:     #34D399;
-  --green-bg:  rgba(52,211,153,.08);
-  --red:       #F87171;
-  --red-bg:    rgba(248,113,113,.08);
-  --purple:    #A78BFA;
-  --purple-bg: rgba(167,139,250,.08);
-  --text:      #E2E8F0;
-  --td:        #94A3B8;
-  --tm:        #475569;
+  --bg:        #F8FAFC;
+  --s1:        #FFFFFF;
+  --s2:        #F1F5F9;
+  --s3:        #E2E8F0;
+  --b1:        #E2E8F0;
+  --b2:        #CBD5E1;
+  --accent:    #D97706;
+  --a-dim:     rgba(217,119,6,.12);
+  --a-glow:    rgba(217,119,6,.30);
+  --blue:      #2563EB;
+  --blue-bg:   rgba(37,99,235,.08);
+  --green:     #10B981;
+  --green-bg:  rgba(16,185,129,.08);
+  --red:       #EF4444;
+  --red-bg:    rgba(239,68,68,.08);
+  --purple:    #8B5CF6;
+  --purple-bg: rgba(139,92,246,.08);
+  --text:      #0F172A;
+  --td:        #334155;
+  --tm:        #64748B;
   --mono:      'Space Mono','Courier New',monospace;
   --ui:        'Syne',system-ui,sans-serif;
   --r:         8px;
@@ -97,7 +97,7 @@ body{overflow:hidden}
 
 /* ── BUTTONS ──────────────────────────────── */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:var(--ui);font-size:13px;font-weight:600;transition:all var(--ease);white-space:nowrap;line-height:1}
-.btn-p{background:var(--accent);color:#000}.btn-p:hover{background:#D97706}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#B45309}
 .btn-s{background:var(--s2);color:var(--text);border:1px solid var(--b2)}.btn-s:hover{background:var(--s3)}
 .btn-g{background:transparent;color:var(--td);border:1px solid var(--b1)}.btn-g:hover{background:var(--s2);color:var(--text)}
 .btn-d{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.25)}.btn-d:hover{background:rgba(248,113,113,.18)}
@@ -200,7 +200,7 @@ body{overflow:hidden}
 .ttime{font-size:10px;color:var(--tm);flex-shrink:0}
 
 /* ── FOCUS OVERLAY ────────────────────────── */
-#fo{position:fixed;inset:0;background:rgba(4,6,12,.97);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;text-align:center}
+#fo{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;text-align:center}
 #fo.on{display:flex}
 .fo-label{font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--tm)}
 .fo-task{font-size:clamp(16px,3vw,24px);font-weight:700;max-width:560px;line-height:1.4;color:var(--text)}
@@ -335,6 +335,9 @@ canvas{width:100%!important;display:block;max-width:100%}
   .tbadges .badge{display:none}
   .tbadges .badge.bwarn,.tbadges .badge:first-child{display:inline-flex}
   .btn-xs{padding:3px 8px}
+  .tname { font-size: 14.5px; font-weight: 700; white-space: normal; overflow: visible; line-height: 1.4; padding-top: 1px; color: var(--text); }
+  .trow { align-items: flex-start; padding: 10px; }
+  .tsb, .tex { margin-top: 2px; }
   .modal{max-height:96vh;margin:0}
   .mbk{padding:8px;align-items:flex-end}
   .modal{border-radius:var(--rl) var(--rl) 0 0;max-height:92vh}
@@ -349,9 +352,38 @@ canvas{width:100%!important;display:block;max-width:100%}
   .tb-task{max-width:120px}
   #shortcut-panel{left:12px;right:12px;transform:none;min-width:unset}
 }
+
+/* ── LOGIN OVERLAY ────────────────────────── */
+#login-overlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; text-align: center;
+}
+.login-box {
+  background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl);
+  padding: 40px; width: 100%; max-width: 400px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.login-logo { font-size: 32px; font-weight: 800; letter-spacing: 4px; color: var(--accent); font-family: var(--mono); }
+.login-desc { color: var(--td); font-size: 14px; line-height: 1.5; }
+.btn-google { background: #fff; color: #000; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: var(--r); font-weight: 600; cursor: pointer; transition: all var(--ease); border: none; font-size: 15px; }
+.btn-google:hover { background: #f1f5f9; }
+.btn-google img { width: 20px; height: 20px; }
 </style>
 </head>
 <body>
+
+<!-- ════ LOGIN OVERLAY ════ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">NEXUS</div>
+    <div class="login-desc">Sign in to sync your tasks and keep your goals private across devices.</div>
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+  </div>
+</div>
 
 <div id="app">
 
@@ -404,6 +436,7 @@ canvas{width:100%!important;display:block;max-width:100%}
         <button id="notif-btn" onclick="NM.requestPermission()" title="Notifications">🔔</button>
         <button class="btn btn-s btn-sm" onclick="openTaskModal(null)" title="Ctrl+N">+ Add Task</button>
         <button class="btn btn-g btn-sm" onclick="toggleShortcuts()" title="Ctrl+/">⌨</button>
+        <button class="btn btn-g btn-sm" onclick="logout()" title="Logout" style="margin-left: 6px;">🚪</button>
       </div>
     </div>
 
@@ -706,6 +739,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 ════════════════════════════════════════════════ -->
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 <script>
 'use strict';
 
@@ -752,7 +786,12 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const firestore = firebase.firestore();
-const docRef = firestore.collection('nexus_os').doc('user_data');
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+let docRef = null;
+let _unsubSnapshot = null;
+let currentUserId = null;
 
 const DB = {
   _state: {
@@ -768,9 +807,12 @@ const DB = {
   
   _load(k,d) { return this._state[k] != null ? this._state[k] : d; },
   _save(k,v) { 
-    this._state[k] = v; 
-    try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+    this._state[k] = v;
+    if (currentUserId) {
+      try{ localStorage.setItem(`${currentUserId}_${k}`,JSON.stringify(v)); }catch(e){}
+    }
     
+    if (!docRef) return;
     clearTimeout(this._saveTimer);
     this._saveTimer = setTimeout(() => {
       docRef.set(this._state).catch(e => console.error("Firebase sync error", e));
@@ -793,30 +835,155 @@ const DB = {
   saveFocusState(v){ this._save('nx2_focus',v); },
   
   initLocal() {
+    if (!currentUserId) return;
     ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus'].forEach(k => {
-      try{ const v=localStorage.getItem(k); if(v!=null) this._state[k] = JSON.parse(v); }catch(e){}
+      try{ 
+        const v = localStorage.getItem(`${currentUserId}_${k}`);
+        let old_v = null;
+        if (v == null) {
+          old_v = localStorage.getItem(k);
+          if (old_v != null) localStorage.removeItem(k);
+        }
+        const valToParse = v != null ? v : old_v;
+        if (valToParse != null) this._state[k] = JSON.parse(valToParse);
+      } catch(e){}
     });
+  },
+
+  clearState() {
+     this._state = {
+       nx2_tasks: [], nx2_goals: [], nx2_logs: [], nx2_sessions: [],
+       nx2_streak: {count:0,lastDate:null}, nx2_meta: {lastPlanning:null,notifSeen:[]}, nx2_focus: null
+     };
   }
 };
 
-DB.initLocal();
-
-let _fbFirstLoad = true;
-docRef.onSnapshot(doc => {
-  if (doc.exists) {
-    const data = doc.data();
-    Object.keys(data).forEach(k => {
-      DB._state[k] = data[k];
-      try{ localStorage.setItem(k,JSON.stringify(data[k])); }catch(e){}
+auth.onAuthStateChanged(user => {
+  const loginOverlay = document.getElementById('login-overlay');
+  if (user) {
+    if (loginOverlay) loginOverlay.style.display = 'none';
+    currentUserId = user.uid;
+    docRef = firestore.collection('users').doc(user.uid);
+    
+    DB.initLocal();
+    if (typeof refreshAll === 'function') refreshAll();
+    
+    let _fbFirstLoad = true;
+    if (_unsubSnapshot) _unsubSnapshot();
+    
+    _unsubSnapshot = docRef.onSnapshot(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        Object.keys(data).forEach(k => {
+          DB._state[k] = data[k];
+          try{ localStorage.setItem(`${currentUserId}_${k}`,JSON.stringify(data[k])); }catch(e){}
+        });
+        if (!_fbFirstLoad && typeof refreshAll === 'function') {
+          refreshAll();
+        } else if (_fbFirstLoad && typeof refreshAll === 'function') {
+           refreshAll();
+        }
+      } else if (_fbFirstLoad) {
+        docRef.set(DB._state).catch(e => console.error("Initial push failed", e));
+      }
+      _fbFirstLoad = false;
+      
+      seedMyCustomTasks();
+      if (typeof refreshAll === 'function') refreshAll();
     });
-    if (!_fbFirstLoad && typeof refreshAll === 'function') {
-      refreshAll();
-    }
-  } else if (_fbFirstLoad) {
-    docRef.set(DB._state).catch(e => console.error("Initial push failed", e));
+  } else {
+    currentUserId = null;
+    docRef = null;
+    if (_unsubSnapshot) { _unsubSnapshot(); _unsubSnapshot = null; }
+    DB.clearState();
+    if (loginOverlay) loginOverlay.style.display = 'flex';
   }
-  _fbFirstLoad = false;
 });
+
+function loginWithGoogle() {
+  auth.signInWithPopup(googleProvider).catch(error => {
+    console.error("Login failed", error);
+    if (typeof toast === 'function') toast("Login failed: " + error.message, "e");
+  });
+}
+
+function logout() {
+  auth.signOut().then(() => {
+    if (typeof toast === 'function') toast("Logged out successfully", "s");
+  }).catch(error => {
+    if (typeof toast === 'function') toast("Logout failed: " + error.message, "e");
+  });
+}
+
+function seedMyCustomTasks() {
+  if (!currentUserId) return;
+  if (localStorage.getItem(`${currentUserId}_custom_seeded_v1`)) return;
+
+  const g1 = GM.create({
+    title: 'إنهاء جميع المحاضرات',
+    description: 'إنهاء 6 مواد دراسية، كل مادة 7 محاضرات',
+    color: 'blue'
+  });
+
+  const subjects = ['CCNA 3', 'Network programing', 'Embedded systems', 'software enginering', 'distributed', 'ccna security'];
+  subjects.forEach(sub => {
+    const parentTask = TM.create({
+      title: sub,
+      goalId: g1.id,
+      level: 'monthly',
+      priority: 'high'
+    });
+    for(let i=1; i<=7; i++) {
+      TM.create({
+        title: `محاضرة ${i}`,
+        parentId: parentTask.id,
+        goalId: g1.id,
+        level: 'weekly',
+        priority: 'medium',
+        estimatedTime: 120
+      });
+    }
+  });
+
+  const g2 = GM.create({
+    title: 'توفير 2000 جنيه شهرياً',
+    description: 'تحويش 2000 جنيه كل شهر بمقدار 65 جنيه يومياً',
+    color: 'green',
+    metric: 'جنيه',
+    target: 2000,
+    unit: 'جنيه'
+  });
+
+  TM.create({
+    title: 'تحويش 65 جنيه',
+    goalId: g2.id,
+    level: 'daily',
+    priority: 'high',
+    recurrence: 'daily'
+  });
+
+  const d = new Date();
+  d.setMonth(d.getMonth() + 3);
+  const g3Due = d.toISOString().split('T')[0];
+  const g3 = GM.create({
+    title: 'الوصول لمستوى احترافي في الجيم',
+    description: 'الالتزام بالتدريب يومياً للوصول للهدف خلال 3 أشهر',
+    dueDate: g3Due,
+    color: 'amber'
+  });
+
+  TM.create({
+    title: 'التمرين في الجيم',
+    goalId: g3.id,
+    level: 'daily',
+    priority: 'high',
+    recurrence: 'daily',
+    estimatedTime: 90
+  });
+
+  localStorage.setItem(`${currentUserId}_custom_seeded_v1`, 'true');
+  if (typeof toast === 'function') toast('✅ تم إضافة المهام والأهداف الجديدة بنجاح!', 's', 6000);
+}
 
 // ═══════════════════════════════════════════
 // LOG MANAGER
