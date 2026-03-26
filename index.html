@@ -1041,108 +1041,90 @@ function seedMyCustomTasks() {
     localStorage.setItem(`${currentUserId}_custom_seeded_v1`, 'true');
   }
 
-  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v2`)) {
-    // Delete v1 versions of savings and gym
-    const oldGoals = DB.getGoals().filter(g => g.title.includes('توفير') || g.title.includes('للجيم') || g.title.includes('الجيم'));
-    oldGoals.forEach(g => {
+  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v5`)) {
+    const oldTargets = DB.getGoals().filter(g => 
+      g.title.includes('توفير') || 
+      g.title.includes('احترافي في الجيم') || 
+      g.title.includes('الجيم') ||
+      g.title.includes('العبادات')
+    );
+    oldTargets.forEach(g => {
       GM.delete(g.id);
       DB.getTasks().forEach(t => { if(t.goalId === g.id) TM.delete(t.id); });
     });
 
-    // 2. Savings V2
+    // 1. Savings
     const g2 = GM.create({
       title: 'توفير 2000 جنيه شهرياً',
-      description: 'تحويش 2000 جنيه شهرياً مقسمة إلى 500 أسبوعياً و 65 يومياً',
-      color: 'green',
-      metric: 'جنيه',
-      target: 2000,
-      unit: 'جنيه'
+      description: 'تحويش 2000 جنيه شهرياً مقسمة إلى مهام يومية (65 جنيه)',
+      color: 'green', metric: 'جنيه', target: 2000, unit: 'جنيه'
     });
-
     const svParent = TM.create({
-      title: 'تحويش 500 جنيه (أسبوعياً)',
-      goalId: g2.id,
-      level: 'weekly',
-      priority: 'high',
-      recurrence: 'weekly'
+      title: 'توفير شهر (1)', goalId: g2.id, level: 'monthly', priority: 'high'
     });
+    for(let i=1; i<=30; i++) {
+      TM.create({
+        title: `تحويش 65 ج (اليوم ${i})`, parentId: svParent.id, goalId: g2.id, level: 'daily', priority: 'medium'
+      });
+    }
 
-    TM.create({
-      title: 'تحويش 65 جنيه (يومياً)',
-      parentId: svParent.id,
-      goalId: g2.id,
-      level: 'daily',
-      priority: 'medium',
-      recurrence: 'daily'
-    });
-
-    // 3. Gym Cumulative 
-    const d = new Date();
-    d.setMonth(d.getMonth() + 3);
-    const g3Due = d.toISOString().split('T')[0];
+    // 2. Gym
+    const d = new Date(); d.setMonth(d.getMonth() + 3);
     const g3 = GM.create({
       title: 'الوصول لمستوى احترافي في الجيم',
-      description: 'التمرين التراكمي: الالتزام يوم ورا يوم لإغلاق المهام عبر 12 أسبوع',
-      dueDate: g3Due,
-      color: 'amber'
+      description: 'الالتزام ببرنامج 3 شهور، مقسم لشهور وأيام',
+      dueDate: d.toISOString().split('T')[0], color: 'amber'
     });
-
-    for(let w=1; w<=12; w++) {
-      const wt = TM.create({
-        title: `تدريب الأسبوع ${w}`,
-        goalId: g3.id,
-        level: 'weekly',
-        priority: 'high'
+    for(let m=1; m<=3; m++) {
+      const gymMon = TM.create({
+        title: `خطة الجيم (الشهر ${m})`, goalId: g3.id, level: 'monthly', priority: 'high'
       });
-      for(let i=1; i<=6; i++) {
+      for(let day=1; day<=30; day++) {
         TM.create({
-          title: `تمرين اليوم ${i} (${w})`,
-          parentId: wt.id,
-          goalId: g3.id,
-          level: 'daily',
-          priority: 'medium',
-          estimatedTime: 90
+          title: `تمرين (اليوم ${day})`, parentId: gymMon.id, goalId: g3.id, level: 'daily', priority: 'high', estimatedTime: 90
         });
       }
     }
 
-    localStorage.setItem(`${currentUserId}_custom_seeded_v2`, 'true');
-    if (typeof toast === 'function') toast('✅ تم تعديل خطة التحويش والجيم إلى التراكمي المتقدم!', 's', 6000);
-  }
-
-  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v3`)) {
+    // 3. Worship
     const g4 = GM.create({
       title: 'العبادات اليومية',
-      description: 'الالتزام بالورد القرآني، الأذكار، والصدقة تقرباً إلى الله',
+      description: 'قراءة الورد، الأذكار، والصدقة',
       color: 'purple'
     });
+    const wRrd = TM.create({ title: 'ختمة القرآن (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
+    const wZkr = TM.create({ title: 'المواظبة على الأذكار (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
+    const wSad = TM.create({ title: 'الصدقة المكتوبة (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
 
-    TM.create({
-      title: 'قراءة الورد اليومي',
-      goalId: g4.id,
-      level: 'daily',
-      priority: 'high',
-      recurrence: 'daily'
+    for(let i=1; i<=30; i++) {
+        TM.create({ title: `الورد القرآني (اليوم ${i})`, parentId: wRrd.id, goalId: g4.id, level: 'daily', priority: 'high' });
+        TM.create({ title: `أذكار الصباح والمساء (اليوم ${i})`, parentId: wZkr.id, goalId: g4.id, level: 'daily', priority: 'high' });
+        TM.create({ title: `صدقة 5 ج (اليوم ${i})`, parentId: wSad.id, goalId: g4.id, level: 'daily', priority: 'medium' });
+    }
+
+    localStorage.setItem(`${currentUserId}_custom_seeded_v5`, 'true');
+    if (typeof toast === 'function') toast('✅ تم ترتيب المهام بنظام الفرعيات (زي المحاضرات)!', 's', 6000);
+  }
+
+  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v6`)) {
+    const g5 = GM.create({
+      title: 'إتقان اللغة الإنجليزية',
+      description: 'خطة احترافية للتدريب الشامل على المهارات يومياً (استماع، كلمات، تحدث)',
+      color: 'blue'
     });
+    
+    const eList = TM.create({ title: 'الاستماع الشامل (Listening) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
+    const eVocab = TM.create({ title: 'حفظ كلمات ومراجعة (Vocabulary) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
+    const eSpeak = TM.create({ title: 'التحدث والظل (Speaking) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
 
-    TM.create({
-      title: 'الأذكار',
-      goalId: g4.id,
-      level: 'daily',
-      priority: 'high',
-      recurrence: 'daily'
-    });
+    for(let i=1; i<=30; i++) {
+        TM.create({ title: `استماع لقطعة/بودكاست (اليوم ${i})`, parentId: eList.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
+        TM.create({ title: `دراسة 5 كلمات وحفظها (اليوم ${i})`, parentId: eVocab.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
+        TM.create({ title: `ممارسة التحدث بصوت عالٍ (اليوم ${i})`, parentId: eSpeak.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
+    }
 
-    TM.create({
-      title: 'صدقة 5 جنيه',
-      goalId: g4.id,
-      level: 'daily',
-      priority: 'medium',
-      recurrence: 'daily'
-    });
-
-    localStorage.setItem(`${currentUserId}_custom_seeded_v3`, 'true');
-    if (typeof toast === 'function') toast('✅ تم إضافة أهداف العبادات اليومية بنجاح!', 's', 6000);
+    localStorage.setItem(`${currentUserId}_custom_seeded_v6`, 'true');
+    if (typeof toast === 'function') toast('✅ تم إضافة خطة تعلم الإنجليزية الاحترافية!', 's', 6000);
   }
 }
 
