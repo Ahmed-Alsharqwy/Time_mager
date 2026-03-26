@@ -8,32 +8,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg:        #F8FAFC;
-  --s1:        #FFFFFF;
-  --s2:        #F1F5F9;
-  --s3:        #E2E8F0;
-  --b1:        #E2E8F0;
-  --b2:        #CBD5E1;
-  --accent:    #D97706;
-  --a-dim:     rgba(217,119,6,.12);
-  --a-glow:    rgba(217,119,6,.30);
-  --blue:      #2563EB;
-  --blue-bg:   rgba(37,99,235,.08);
-  --green:     #10B981;
-  --green-bg:  rgba(16,185,129,.08);
-  --red:       #EF4444;
-  --red-bg:    rgba(239,68,68,.08);
-  --purple:    #8B5CF6;
-  --purple-bg: rgba(139,92,246,.08);
-  --text:      #0F172A;
-  --td:        #334155;
-  --tm:        #64748B;
+  /* DARK THEME (DEFAULT) */
+  --bg:        #080A0F;
+  --s1:        #0F1218;
+  --s2:        #161B24;
+  --s3:        #1D2330;
+  --b1:        #252D3A;
+  --b2:        #333D52;
+  --accent:    #F59E0B;
+  --a-dim:     rgba(245,158,11,.12);
+  --a-glow:    rgba(245,158,11,.30);
+  --blue:      #60A5FA;
+  --blue-bg:   rgba(96,165,250,.08);
+  --green:     #34D399;
+  --green-bg:  rgba(52,211,153,.08);
+  --red:       #F87171;
+  --red-bg:    rgba(248,113,113,.08);
+  --purple:    #A78BFA;
+  --purple-bg: rgba(167,139,250,.08);
+  --text:      #E2E8F0;
+  --td:        #94A3B8;
+  --tm:        #475569;
+  --fo-bg:     rgba(4,6,12,.97);
+  
   --mono:      'Space Mono','Courier New',monospace;
   --ui:        'Syne',system-ui,sans-serif;
   --r:         8px;
   --rl:        12px;
   --ease:      200ms ease;
   --sb-w:      220px;
+}
+
+[data-theme="light"] {
+  /* CALM LIGHT THEME */
+  --bg:        #F4F5F7;
+  --s1:        #FFFFFF;
+  --s2:        #EAEEF3;
+  --s3:        #DFE4EA;
+  --b1:        #DFE4EA;
+  --b2:        #C1C9D4;
+  --accent:    #D97706;
+  --a-dim:     rgba(217,119,6,.12);
+  --a-glow:    rgba(217,119,6,.30);
+  --blue:      #2563EB;
+  --blue-bg:   rgba(37,99,235,.08);
+  --green:     #059669;
+  --green-bg:  rgba(5,150,105,.08);
+  --red:       #DC2626;
+  --red-bg:    rgba(220,38,38,.08);
+  --purple:    #7C3AED;
+  --purple-bg: rgba(124,58,237,.08);
+  --text:      #111827;
+  --td:        #475569;
+  --tm:        #64748B;
+  --fo-bg:     rgba(244,245,247,.97);
 }
 
 /* ── RESET ────────────────────────────────── */
@@ -97,7 +125,7 @@ body{overflow:hidden}
 
 /* ── BUTTONS ──────────────────────────────── */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:var(--ui);font-size:13px;font-weight:600;transition:all var(--ease);white-space:nowrap;line-height:1}
-.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#B45309}
+.btn-p{background:var(--accent);color:var(--bg)}.btn-p:hover{background:var(--accent);opacity:0.9}
 .btn-s{background:var(--s2);color:var(--text);border:1px solid var(--b2)}.btn-s:hover{background:var(--s3)}
 .btn-g{background:transparent;color:var(--td);border:1px solid var(--b1)}.btn-g:hover{background:var(--s2);color:var(--text)}
 .btn-d{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.25)}.btn-d:hover{background:rgba(248,113,113,.18)}
@@ -200,7 +228,7 @@ body{overflow:hidden}
 .ttime{font-size:10px;color:var(--tm);flex-shrink:0}
 
 /* ── FOCUS OVERLAY ────────────────────────── */
-#fo{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;text-align:center}
+#fo{position:fixed;inset:0;background:var(--fo-bg);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;text-align:center}
 #fo.on{display:flex}
 .fo-label{font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--tm)}
 .fo-task{font-size:clamp(16px,3vw,24px);font-weight:700;max-width:560px;line-height:1.4;color:var(--text)}
@@ -450,6 +478,7 @@ canvas{width:100%!important;display:block;max-width:100%}
       </div>
       <div id="tb-empty" class="tb-empty">No active focus — select a task to begin</div>
       <div class="tb-right">
+        <button id="theme-btn" class="btn btn-g btn-sm" onclick="toggleTheme()" title="Toggle Theme">🌔</button>
         <button id="notif-btn" onclick="NM.requestPermission()" title="Notifications">🔔</button>
         <button class="btn btn-s btn-sm" onclick="openTaskModal(null)" title="Ctrl+N">+ Add Task</button>
         <button class="btn btn-g btn-sm" onclick="toggleShortcuts()" title="Ctrl+/">⌨</button>
@@ -759,6 +788,25 @@ canvas{width:100%!important;display:block;max-width:100%}
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 <script>
 'use strict';
+
+// ═══════════════════════════════════════════
+// THEME MANAGER
+// ═══════════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  localStorage.setItem('nexus_theme', isLight ? 'dark' : 'light');
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = isLight ? '🌔' : '🌞';
+}
+(function(){
+  const t = localStorage.getItem('nexus_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  window.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('theme-btn');
+    if(btn) btn.textContent = t === 'light' ? '🌞' : '🌔';
+  });
+})();
 
 // ═══════════════════════════════════════════
 // UTILS
