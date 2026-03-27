@@ -360,6 +360,19 @@ canvas{width:100%!important;display:block;max-width:100%}
 .profile-edit-form { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 16px; background: var(--s2); padding: 16px; border-radius: var(--rl); border: 1px solid var(--b1); }
 .profile-edit-form.on { display: flex; }
 
+/* ── DASHBOARD TODO ───────────────────────── */
+.todo-hero { background: linear-gradient(135deg, var(--s1), var(--s2)); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.todo-list-container { display: flex; flex-direction: column; gap: 12px; }
+.todo-item { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); padding: 14px 18px; display: flex; align-items: center; gap: 14px; transition: all var(--ease); cursor: pointer; }
+.todo-item:hover { border-color: var(--b2); transform: translateX(4px); background: var(--s2); }
+.todo-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--b2); display: flex; align-items: center; justify-content: center; transition: all var(--ease); flex-shrink: 0; }
+.todo-item:hover .todo-check { border-color: var(--accent); }
+.todo-item.done .todo-check { background: var(--green); border-color: var(--green); color: white; }
+.todo-item.done .todo-content { opacity: 0.5; text-decoration: line-through; }
+.todo-content { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.todo-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.todo-meta { display: flex; gap: 10px; font-size: 11px; color: var(--tm); align-items: center; }
+
 /* ── WELLNESS CARD ────────────────────────── */
 .wellness-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 18px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
 .wellness-card::after { content: '💧'; position: absolute; right: -10px; top: -10px; font-size: 80px; opacity: 0.05; pointer-events: none; }
@@ -532,43 +545,35 @@ canvas{width:100%!important;display:block;max-width:100%}
     <div id="view-dashboard" class="view active">
       <div id="d-notif-bar" style="display:none"></div>
       
-      <div style="margin-bottom: 8px;">
-        <h2 style="font-size: 24px; font-weight: 800;" id="d-greeting">Welcome back! 👋</h2>
-        <p style="font-size: 13px; color: var(--tm);" id="d-tip">Focus on your goals and stay consistent.</p>
+      <div class="todo-hero">
+        <div style="flex: 1;">
+          <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 4px;" id="d-greeting">Welcome back! 👋</h2>
+          <p style="font-size: 14px; color: var(--tm);" id="d-tip">You have <span id="d-task-count" style="color:var(--accent);font-weight:700">0</span> tasks ready for execution today.</p>
+        </div>
+        <div class="wellness-card" style="width: 300px; padding: 14px; gap: 10px;">
+          <div class="wellness-header">
+            <span class="wellness-title">💧 Hydration</span>
+            <span class="water-count" id="w-count" style="font-size:12px">0/8</span>
+          </div>
+          <div class="water-grid" id="w-grid" style="gap:4px"></div>
+          <div class="pb" style="height: 4px;"><div class="pbf b" id="w-pb" style="width: 0%;"></div></div>
+        </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-           <div class="sh"><div class="st">📅 <em>Today's Focus</em></div></div>
-           <div id="d-today-list" class="task-tree"></div>
-           <div id="d-overdue" style="display:none"></div>
-           <div id="d-mit"></div>
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div id="d-overdue" style="display:none"></div>
+        
+        <div class="sh"><div class="st">📋 <em>Today's To-Do List</em></div></div>
+        <div id="d-todo-list" class="todo-list-container">
+          <!-- Filtered actionable tasks here -->
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div class="wellness-card">
-            <div class="wellness-header">
-              <span class="wellness-title">💧 Hydration</span>
-              <button class="btn btn-g btn-xs" onclick="resetWater()">Reset</button>
-            </div>
-            <div class="water-tracker">
-              <div class="water-info">
-                <span>Daily Goal: 2000ml</span>
-                <span class="water-count" id="w-count">0 / 8 glasses</span>
-              </div>
-              <div class="pb" style="height: 6px;"><div class="pbf b" id="w-pb" style="width: 0%;"></div></div>
-              <div class="water-grid" id="w-grid">
-                <!-- Drop icons with glass count -->
-              </div>
-            </div>
-            <div class="wellness-tip" id="w-tip">
-              💡 Tip: Drink a glass of water every hour to stay sharp.
-            </div>
-          </div>
-
-          <div class="card" style="border-left: 3px solid var(--purple);">
-            <div style="font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">🧠 Focus Tip</div>
-            <div style="font-size: 12px; color: var(--td); line-height: 1.5;" id="f-tip">
+        <div id="d-mit"></div>
+        
+        <div class="card" style="border-left: 4px solid var(--accent); background: var(--s2);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">💡</span>
+            <div style="font-size: 13px; color: var(--td); line-height: 1.5;" id="f-tip">
               Break large tasks into 25-minute Pomodoro sessions to maintain high energy.
             </div>
           </div>
@@ -578,31 +583,36 @@ canvas{width:100%!important;display:block;max-width:100%}
 
     <!-- ══ PROFILE VIEW ══ -->
     <div id="view-profile" class="view">
-      <div class="st">👤 <em>User</em> Profile</div>
-      
-      <div class="profile-card">
-        <div class="profile-avatar" id="p-avatar">👤</div>
-        <div>
-          <div class="profile-name" id="p-name">Loading...</div>
-          <div class="profile-email" id="p-email">user@nexus.io</div>
-          <button class="btn btn-g btn-xs" style="margin-top: 8px;" onclick="toggleEditProfile()">✎ Edit Profile</button>
-        </div>
-        
-        <div class="profile-edit-form" id="p-edit-form">
-          <div class="fg"><label class="fl">Display Name</label><input type="text" class="fi" id="f-pname" placeholder="Your Name"></div>
-          <div class="fg"><label class="fl">Avatar URL</label><input type="text" class="fi" id="f-pavatar" placeholder="https://..."></div>
-          <div style="display: flex; gap: 6px; margin-top: 4px;">
-            <button class="btn btn-p btn-sm" style="flex: 1;" onclick="saveProfile()">Save</button>
-            <button class="btn btn-g btn-sm" style="flex: 1;" onclick="toggleEditProfile()">Cancel</button>
+      <div class="profile-card" style="display: block; padding: 0; overflow: hidden;">
+        <div style="height: 100px; background: linear-gradient(to right, var(--s2), var(--b2));"></div>
+        <div style="padding: 24px; margin-top: -60px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end;">
+          <div class="profile-avatar" id="p-avatar" style="width: 120px; height: 120px; font-size: 40px; border: 4px solid var(--bg); background: var(--s1);">👤</div>
+          <div style="flex: 1; padding-bottom: 8px;">
+            <div class="profile-name" id="p-name" style="font-size: 28px;">Loading...</div>
+            <div class="profile-email" id="p-email">user@nexus.io</div>
           </div>
+          <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">✎ Edit Profile</button>
         </div>
 
-        <div class="profile-level-box">
-          <div class="profile-level-label">
-            <span id="p-level-tag">Level 1 Novice</span>
-            <span class="profile-xp" id="p-xp">0 / 100 XP</span>
+        <div style="padding: 0 24px 24px 24px;">
+          <div class="profile-edit-form" id="p-edit-form" style="max-width: 100%; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="fg"><label class="fl">Display Name</label><input type="text" class="fi" id="f-pname" placeholder="Your Name"></div>
+              <div class="fg"><label class="fl">Avatar URL</label><input type="text" class="fi" id="f-pavatar" placeholder="https://..."></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
+              <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">Cancel</button>
+              <button class="btn btn-p btn-sm" onclick="saveProfile()">Save Changes</button>
+            </div>
           </div>
-          <div class="pb"><div class="pbf" id="p-level-bar" style="width:0%"></div></div>
+
+          <div class="profile-level-box" style="background: var(--s2); border-radius: var(--rl); padding: 16px; border: 1px solid var(--b1);">
+            <div class="profile-level-label">
+              <span id="p-level-tag">Level 1 Novice</span>
+              <span id="p-xp" style="font-family:var(--mono)">0 / 100 XP</span>
+            </div>
+            <div class="pb" style="height:10px"><div id="p-level-bar" class="pbf" style="width:0%"></div></div>
+          </div>
         </div>
       </div>
 
@@ -1954,40 +1964,37 @@ function renderDashboard() {
   document.getElementById('sb-streak').textContent = streak.count;
 
   // Render Wellness
-  document.getElementById('w-count').textContent = `${wellness.water} / 8 glasses`;
+  document.getElementById('w-count').textContent = `${wellness.water}/8`;
   document.getElementById('w-pb').style.width = Math.min(100, (wellness.water/8)*100) + '%';
   const grid = document.getElementById('w-grid');
   grid.innerHTML = '';
-  for(let i=1; i<=12; i++) {
+  // Show 8 droplets
+  for(let i=1; i<=8; i++) {
     const drop = document.createElement('div');
     drop.className = 'water-drop' + (i <= wellness.water ? ' filled' : '');
     drop.textContent = '💧';
+    drop.style.width = '20px'; drop.style.height = '20px'; drop.style.fontSize = '8px';
     drop.onclick = () => WM.logWater();
     grid.appendChild(drop);
   }
 
-  const tips = [
-    "Drink water every hour to stay sharp.",
-    "A hydrated brain is a productive brain.",
-    "Time for a quick stretch?",
-    "Take 5 minutes to breathe deeply.",
-    "Stand up and move for 60 seconds."
-  ];
-  document.getElementById('w-tip').textContent = "💡 Tip: " + tips[Math.floor(Math.random()*tips.length)];
-
-  // Render Today's Tasks
-  const todayTasks = DB.getTasks().filter(t => 
-    !t.parentId && 
-    (t.dueDate === todayStr() || t.level === 'daily') && 
-    t.status !== 'completed'
+  // Render Actionable To-Do List
+  const allTasks = DB.getTasks();
+  const actionable = allTasks.filter(t => 
+    t.status !== 'completed' && 
+    (t.dueDate === todayStr() || isOverdue(t.dueDate) || t.level === 'daily')
   );
   
-  const todayList = document.getElementById('d-today-list');
-  if(todayTasks.length) {
-    todayList.innerHTML = '';
-    todayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, DB.getTasks(), null)));
+  document.getElementById('d-task-count').textContent = actionable.length;
+  const todoList = document.getElementById('d-todo-list');
+  todoList.innerHTML = '';
+  
+  if(actionable.length) {
+    actionable.forEach(t => {
+      todoList.appendChild(mkTodoEl(t));
+    });
   } else {
-    todayList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
+    todoList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
       <div class="empty" style="padding:10px">
         <div class="empty-icon" style="font-size:20px">✨</div>
         <div class="empty-text">No pending tasks for today. Great job!</div>
@@ -2013,25 +2020,16 @@ function renderDashboard() {
       </div>
     </div>`;
   } else {
-    ms.innerHTML=`<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:100px"><div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No active tasks. Add one to get started!</div></div></div>`;
+    ms.innerHTML=``;
   }
 
-  // Notification permission bar
-  const nb = document.getElementById('d-notif-bar');
-  if('Notification' in window && Notification.permission==='default') {
-    nb.style.display='flex';
-    nb.innerHTML=`<div class="notif-bar"><span class="notif-bar-text">🔔 Enable notifications for 30-min reminders & overdue alerts</span><button class="btn btn-p btn-sm" onclick="NM.requestPermission()">Enable</button></div>`;
-  } else nb.style.display='none';
-
-  // Overdue alert
-  const overdue = DB.getTasks().filter(t=>isOverdue(t.dueDate)&&t.status!=='completed');
+  // Overdue alert (only show if many or critical)
+  const overdue = actionable.filter(t=>isOverdue(t.dueDate));
   const da = document.getElementById('d-overdue');
-  if(overdue.length) {
+  if(overdue.length > 2) {
     da.style.display='block';
-    da.innerHTML=`<div class="overdue-alert">
-      <h4>🔴 ${overdue.length} Overdue Task${overdue.length>1?'s':''}</h4>
-      ${overdue.slice(0,5).map(t=>`<div class="overdue-item">• ${esc(t.title)} <span style="color:var(--red);font-size:10px">(${t.dueDate})</span></div>`).join('')}
-      ${overdue.length>5?`<div style="font-size:11px;color:var(--tm);margin-top:4px">+${overdue.length-5} more...</div>`:''}
+    da.innerHTML=`<div class="overdue-alert" style="margin-bottom:12px">
+      <h4>🔴 ${overdue.length} Overdue Tasks Need Attention</h4>
     </div>`;
   } else da.style.display='none';
 
@@ -2044,6 +2042,34 @@ function renderDashboard() {
     "The hardest part is starting. Commit to 5 minutes."
   ];
   document.getElementById('f-tip').textContent = fTips[Math.floor(Math.random()*fTips.length)];
+}
+
+function mkTodoEl(t) {
+  const el = document.createElement('div');
+  el.className = 'todo-item' + (t.status==='completed'?' done':'');
+  el.onclick = () => {
+    TM.toggle(t.id);
+    renderDashboard();
+  };
+  
+  const prioColors = { high: 'var(--red)', medium: 'var(--yellow)', low: 'var(--tm)' };
+  const prioColor = prioColors[t.priority] || 'var(--tm)';
+
+  el.innerHTML = `
+    <div class="todo-check">${t.status==='completed'?'✓':''}</div>
+    <div class="todo-content">
+      <div class="todo-title">${esc(t.title)}</div>
+      <div class="todo-meta">
+        <span style="color:${prioColor}">● ${t.priority}</span>
+        ${t.dueDate ? `<span>📅 ${t.dueDate}</span>` : ''}
+        ${t.dueTime ? `<span>⏰ ${t.dueTime}</span>` : ''}
+        ${isOverdue(t.dueDate) ? '<span class="badge bh">Overdue</span>' : ''}
+        <span class="badge b${t.level}">${t.level}</span>
+      </div>
+    </div>
+    <button class="btn btn-g btn-xs" onclick="event.stopPropagation(); FM.startTask('${t.id}')">Focus</button>
+  `;
+  return el;
 }
 
 // ═══════════════════════════════════════════
