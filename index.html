@@ -100,7 +100,12 @@ body{overflow:hidden}
 .streak-box{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1);margin-bottom:7px}
 .streak-num{font-size:20px;font-weight:700;color:var(--accent);font-family:var(--mono);line-height:1}
 .streak-lbl{font-size:9px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;line-height:1.4}
-.sb-date{font-size:10px;color:var(--tm);text-align:center;letter-spacing:.3px}
+.sb-profile { padding: 16px; border-bottom: 1px solid var(--b1); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background var(--ease); }
+.sb-profile:hover { background: var(--s2); }
+.sb-avatar { width: 32px; height: 32px; background: var(--s2); border: 1px solid var(--b1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; background-size: cover; color: var(--accent); }
+.sb-user-info { min-width: 0; }
+.sb-username { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-userlevel { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .5px; }
 
 /* ── MAIN ─────────────────────────────────── */
 #main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
@@ -338,6 +343,22 @@ canvas{width:100%!important;display:block;max-width:100%}
 .overdue-item{font-size:12px;color:var(--td);padding:3px 0;border-bottom:1px solid rgba(248,113,113,.1)}
 .overdue-item:last-child{border-bottom:none}
 
+/* ── PROFILE VIEW ────────────────────────── */
+.profile-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-bottom: 16px; position: relative; overflow: hidden; }
+.profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--blue), var(--purple)); }
+.profile-avatar { width: 80px; height: 80px; background: var(--s2); border: 2px solid var(--b1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.profile-name { font-size: 20px; font-weight: 800; color: var(--text); }
+.profile-email { font-size: 13px; color: var(--tm); margin-top: -8px; }
+.profile-level-box { width: 100%; max-width: 300px; margin-top: 8px; }
+.profile-level-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--td); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.profile-xp { color: var(--accent); }
+.stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; width: 100%; }
+.p-stat-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 16px; display: flex; flex-direction: column; gap: 4px; transition: transform var(--ease); }
+.p-stat-card:hover { transform: translateY(-2px); border-color: var(--b2); }
+.p-stat-icon { font-size: 20px; margin-bottom: 4px; }
+.p-stat-val { font-size: 24px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+.p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
+
 /* ── RESPONSIVE ───────────────────────────── */
 @media (max-width:900px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
@@ -437,6 +458,13 @@ canvas{width:100%!important;display:block;max-width:100%}
 
   <!-- ════ SIDEBAR ════ -->
   <nav id="sidebar">
+    <div class="sb-profile" onclick="switchView('profile')" title="View Profile">
+      <div class="sb-avatar" id="sb-avatar-img">👤</div>
+      <div class="sb-user-info">
+        <div class="sb-username" id="sb-username">User</div>
+        <div class="sb-userlevel" id="sb-userlevel">Novice</div>
+      </div>
+    </div>
     <div class="sb-logo">
       <div class="sb-logo-text">
         <div class="lt">NEXUS</div>
@@ -445,11 +473,11 @@ canvas{width:100%!important;display:block;max-width:100%}
       <button id="sb-close" onclick="closeSidebar()" title="Close">✕</button>
     </div>
     <div class="sb-nav">
+      <div class="nav-item" data-view="profile"><span class="nav-icon">👤</span>Profile</div>
       <div class="nav-item active" data-view="dashboard"><span class="nav-icon">⚡</span>Dashboard</div>
       <div class="nav-item" data-view="tasks"><span class="nav-icon">✦</span>Tasks</div>
       <div class="nav-item" data-view="goals"><span class="nav-icon">◎</span>Goals</div>
       <div class="nav-item" data-view="analytics"><span class="nav-icon">▦</span>Analytics</div>
-      <div class="nav-item" data-view="log"><span class="nav-icon">◈</span>Activity Log</div>
     </div>
     <div class="sb-footer">
       <div class="streak-box">
@@ -489,7 +517,13 @@ canvas{width:100%!important;display:block;max-width:100%}
     <!-- ══ DASHBOARD VIEW ══ -->
     <div id="view-dashboard" class="view active">
       <div id="d-notif-bar" style="display:none"></div>
-      <div class="stats-grid" id="d-stats"></div>
+      
+      <!-- Focused Daily Goals -->
+      <div class="sh"><div class="st">📅 <em>Today's Focus</em></div></div>
+      <div id="d-today-list" class="task-tree"></div>
+
+      <div id="d-overdue" style="display:none"></div>
+
       <div id="d-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div id="d-mit"></div>
         <div class="card">
@@ -515,17 +549,52 @@ canvas{width:100%!important;display:block;max-width:100%}
           </div>
         </div>
       </div>
-      <div>
-        <div class="sh"><div class="st">📋 <em>Overview</em></div></div>
-        <div class="ov-grid" id="d-ov"></div>
-      </div>
-      <div id="d-overdue" style="display:none"></div>
+
       <div class="card">
         <div class="sh" style="margin-bottom:9px">
           <div style="font-size:12px;font-weight:600;color:var(--td);text-transform:uppercase;letter-spacing:.6px">🕒 Today's Activity</div>
           <button class="btn btn-g btn-sm" onclick="switchView('log')">View All →</button>
         </div>
         <div class="tl" id="d-tl"></div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE VIEW ══ -->
+    <div id="view-profile" class="view">
+      <div class="st">👤 <em>User</em> Profile</div>
+      
+      <div class="profile-card">
+        <div class="profile-avatar" id="p-avatar">👤</div>
+        <div>
+          <div class="profile-name" id="p-name">Loading...</div>
+          <div class="profile-email" id="p-email">user@nexus.io</div>
+        </div>
+        <div class="profile-level-box">
+          <div class="profile-level-label">
+            <span id="p-level-tag">Level 1 Novice</span>
+            <span class="profile-xp" id="p-xp">0 / 100 XP</span>
+          </div>
+          <div class="pb"><div class="pbf" id="p-level-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="sh"><div class="st">📊 <em>Cumulative</em> Statistics</div></div>
+      <div class="stats-container" id="p-stats">
+        <!-- Stats injected by JS -->
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="sh"><div class="st">📋 <em>Overall</em> Progress</div></div>
+        <div class="ov-grid" id="p-ov">
+          <!-- Overview cards moved here -->
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="sh"><div class="st">🏆 <em>Milestones</em></div></div>
+        <div id="p-milestones" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:10px">
+          <!-- Milestone badges -->
+        </div>
       </div>
     </div>
 
@@ -621,7 +690,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 
 <!-- ════ SHORTCUTS PANEL ════ -->
 <div id="shortcut-panel">
-  <div style="font-size:11px;font-weight:700;color:var(--td);margin-bottom:10px;text-transform:uppercase;letter-spacing:.7px">Keyboard Shortcuts</div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">P</span></div><span class="kblbl">User Profile</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">N</span></div><span class="kblbl">New Task</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">F</span></div><span class="kblbl">Open Focus</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">G</span></div><span class="kblbl">New Goal</span></div>
@@ -1814,18 +1883,29 @@ function renderDashboard() {
   const streak = SM.get();
   const focus = FM.todayFocusTime();
   const logs = DB.getLogs();
-  const wkDone = logs.filter(l=>isThisWeek(l.timestamp)&&l.action==='completed').length;
-  const dailyTasks = Math.max(DB.getTasks().filter(t=>t.level==='daily').length, 1);
-  const wkPct = Math.min(100, Math.round(wkDone/(dailyTasks*7)*100));
-
+  
+  // Update Streak in sidebar
   document.getElementById('sb-streak').textContent = streak.count;
 
-  document.getElementById('d-stats').innerHTML = `
-    <div class="sc ca"><div class="si">🔥</div><div class="sv">${streak.count}</div><div class="sl">Day Streak</div></div>
-    <div class="sc cb"><div class="si">⏱</div><div class="sv">${fmtDur(focus)}</div><div class="sl">Focus Today</div></div>
-    <div class="sc cg"><div class="si">✅</div><div class="sv">${stats.completedToday}</div><div class="sl">Done Today</div></div>
-    <div class="sc cp"><div class="si">📊</div><div class="sv">${wkPct}%</div><div class="sl">Weekly Rate</div></div>
-  `;
+  // Render Today's Tasks
+  const todayTasks = DB.getTasks().filter(t => 
+    !t.parentId && 
+    (t.dueDate === todayStr() || t.level === 'daily') && 
+    t.status !== 'completed'
+  );
+  
+  const todayList = document.getElementById('d-today-list');
+  if(todayTasks.length) {
+    todayList.innerHTML = '';
+    todayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, DB.getTasks(), null)));
+  } else {
+    todayList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
+      <div class="empty" style="padding:10px">
+        <div class="empty-icon" style="font-size:20px">✨</div>
+        <div class="empty-text">No pending tasks for today. Great job!</div>
+      </div>
+    </div>`;
+  }
 
   const mit = TM.MIT();
   const ms = document.getElementById('d-mit');
@@ -1867,13 +1947,84 @@ function renderDashboard() {
     </div>`;
   } else da.style.display='none';
 
-  document.getElementById('d-ov').innerHTML=`
+  renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
+}
+
+// ═══════════════════════════════════════════
+// RENDER PROFILE
+// ═══════════════════════════════════════════
+function renderProfile() {
+  const user = auth.currentUser;
+  if(!user) return;
+
+  document.getElementById('p-name').textContent = user.displayName || user.email.split('@')[0];
+  document.getElementById('p-email').textContent = user.email;
+  if(user.photoURL) {
+    const av = document.getElementById('p-avatar');
+    av.style.backgroundImage = `url(${user.photoURL})`;
+    av.style.backgroundSize = 'cover';
+    av.textContent = '';
+  }
+
+  const tasks = DB.getTasks();
+  const sessions = DB.getSessions();
+  const goals = DB.getGoals();
+  const streak = SM.get();
+  const stats = TM.stats();
+
+  // Calculations
+  const totalFocus = sessions.reduce((s,x)=>s+(x.duration||0),0);
+  const totalCompleted = tasks.filter(t=>t.status==='completed').length;
+  const totalGoals = goals.length;
+  const completedGoals = goals.filter(g=>GM.progress(g.id).pct === 100).length;
+  const allTimeRate = tasks.length ? Math.round((totalCompleted / tasks.length) * 100) : 0;
+
+  // XP & Level (1 task = 10 XP, 1 min focus = 1 XP)
+  const totalXP = (totalCompleted * 10) + Math.floor(totalFocus / 60);
+  const level = Math.floor(totalXP / 100) + 1;
+  const nextXP = level * 100;
+  const currentXP = totalXP % 100;
+  const xpPct = Math.round((currentXP / 100) * 100);
+
+  const levelTags = ['Novice', 'Apprentice', 'Practitioner', 'Ace', 'Master', 'Grandmaster', 'Legend'];
+  document.getElementById('p-level-tag').textContent = `Level ${level} ${levelTags[Math.min(level-1, levelTags.length-1)]}`;
+  document.getElementById('p-xp').textContent = `${currentXP} / 100 XP`;
+  document.getElementById('p-level-bar').style.width = `${xpPct}%`;
+
+  // Stats Grid
+  document.getElementById('p-stats').innerHTML = `
+    <div class="p-stat-card"><div class="p-stat-icon">⏱</div><div class="p-stat-val">${fmtDur(totalFocus)}</div><div class="p-stat-lbl">Total Focus</div></div>
+    <div class="p-stat-card"><div class="p-stat-icon">✅</div><div class="p-stat-val">${totalCompleted}</div><div class="p-stat-lbl">Tasks Done</div></div>
+    <div class="p-stat-card"><div class="p-stat-icon">🔥</div><div class="p-stat-val">${streak.count}</div><div class="p-stat-lbl">Best Streak</div></div>
+    <div class="p-stat-card"><div class="p-stat-icon">🎯</div><div class="p-stat-val">${allTimeRate}%</div><div class="p-stat-lbl">Success Rate</div></div>
+    <div class="p-stat-card"><div class="p-stat-icon">◎</div><div class="p-stat-val">${completedGoals}/${totalGoals}</div><div class="p-stat-lbl">Goals Hit</div></div>
+  `;
+
+  // Overview Grid (Moved from Dashboard)
+  document.getElementById('p-ov').innerHTML = `
     <div class="ov-card cr"><div class="ov-n">${stats.overdue}</div><div class="ov-l">🔴 Overdue</div></div>
     <div class="ov-card ca"><div class="ov-n">${stats.inProgress}</div><div class="ov-l">🟡 In Progress</div></div>
     <div class="ov-card cg"><div class="ov-n">${stats.completedToday}</div><div class="ov-l">🟢 Done Today</div></div>
   `;
 
-  renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
+  // Milestones
+  const msEl = document.getElementById('p-milestones');
+  const milestones = [
+    {id:'m1', icon:'🌟', title:'First Step', desc:'Complete 1 task', check:()=>totalCompleted>=1},
+    {id:'m2', icon:'🔥', title:'Streak Starter', desc:'3-day streak', check:()=>streak.count>=3},
+    {id:'m3', icon:'🧗', title:'Climber', desc:'Reach Level 5', check:()=>level>=5},
+    {id:'m4', icon:'🧘', title:'Zen Master', desc:'10 hours focus', check:()=>totalFocus>=36000},
+    {id:'m5', icon:'🏆', title:'Goal Getter', desc:'Complete 3 goals', check:()=>completedGoals>=3},
+  ];
+  
+  msEl.innerHTML = milestones.map(m => {
+    const met = m.check();
+    return `<div class="card" style="opacity:${met?1:0.4}; border-color:${met?'var(--accent)':'var(--b1)'}">
+      <div style="font-size:24px; margin-bottom:4px">${m.icon}</div>
+      <div style="font-weight:700; font-size:13px">${m.title}</div>
+      <div style="font-size:10px; color:var(--tm)">${m.desc}</div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -2219,6 +2370,7 @@ function switchView(name) {
 
 function renderView(name) {
   if(name==='dashboard')  renderDashboard();
+  else if(name==='profile')   renderProfile();
   else if(name==='tasks')     renderTasks();
   else if(name==='goals')     renderGoals();
   else if(name==='analytics') renderAnalytics();
@@ -2229,7 +2381,26 @@ function refreshAll() {
   renderView(_curView);
   // Always keep stats fresh in topbar
   FM.updTopBar();
-  document.getElementById('sb-streak').textContent = SM.get().count;
+  const streak = SM.get();
+  document.getElementById('sb-streak').textContent = streak.count;
+
+  // Update Sidebar Profile Header
+  const user = auth.currentUser;
+  if(user) {
+    document.getElementById('sb-username').textContent = user.displayName || user.email.split('@')[0];
+    const totalCompleted = DB.getTasks().filter(t=>t.status==='completed').length;
+    const totalFocus = DB.getSessions().reduce((s,x)=>s+(x.duration||0),0);
+    const totalXP = (totalCompleted * 10) + Math.floor(totalFocus / 60);
+    const level = Math.floor(totalXP / 100) + 1;
+    const levelTags = ['Novice', 'Apprentice', 'Practitioner', 'Ace', 'Master', 'Grandmaster', 'Legend'];
+    document.getElementById('sb-userlevel').textContent = levelTags[Math.min(level-1, levelTags.length-1)];
+    
+    if(user.photoURL) {
+      const sbAv = document.getElementById('sb-avatar-img');
+      sbAv.style.backgroundImage = `url(${user.photoURL})`;
+      sbAv.textContent = '';
+    }
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -2281,7 +2452,8 @@ function initKeyboard() {
     if(inInput) return;
 
     if(e.ctrlKey||e.metaKey) {
-      if(e.key==='n') { e.preventDefault(); openTaskModal(null); }
+      if(e.key==='p') { e.preventDefault(); switchView('profile'); }
+      else if(e.key==='n') { e.preventDefault(); openTaskModal(null); }
       else if(e.key==='f') { e.preventDefault(); if(FM.s.taskId) FM.openOverlay(); }
       else if(e.key==='g') { e.preventDefault(); openGoalModal(null); }
       else if(e.key==='/') { e.preventDefault(); toggleShortcuts(); }
