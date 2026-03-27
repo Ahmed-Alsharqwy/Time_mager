@@ -491,8 +491,8 @@ canvas{width:100%!important;display:block;max-width:100%}
   <nav id="sidebar">
     <div class="sb-logo">
       <div class="sb-logo-text">
-        <div class="lt">NEXUS</div>
-        <div class="ls">Discipline OS</div>
+        <div class="lt">OS</div>
+        <div class="ls">Personal Dashboard</div>
       </div>
       <button id="sb-close" onclick="closeSidebar()" title="Close">✕</button>
     </div>
@@ -587,45 +587,44 @@ canvas{width:100%!important;display:block;max-width:100%}
 
     <!-- ══ PROFILE VIEW ══ -->
     <div id="view-profile" class="view">
-      <div class="profile-card" style="display: block; padding: 0; overflow: hidden; border: 1px solid var(--b1); background: var(--s1); border-radius: var(--rl);">
-        <div style="height: 110px; background: linear-gradient(45deg, var(--s3) 25%, transparent 25%), linear-gradient(-45deg, var(--s3) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--s3) 75%), linear-gradient(-45deg, transparent 75%, var(--s3) 75%); background-size: 20px 20px; background-color: var(--s2); position: relative; overflow: hidden;">
-          <div style="position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, var(--a-glow), transparent 70%);"></div>
-        </div>
-        <div style="padding: 20px; margin-top: -55px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; position: relative; z-index: 2;">
-          <div class="profile-avatar" id="p-avatar" onclick="toggleEditProfile()" title="Change Profile Photo" style="width: 110px; height: 110px; font-size: 40px; border: 5px solid var(--s1); background: var(--s2); box-shadow: 0 8px 30px rgba(0,0,0,0.4);">👤</div>
-          <div style="flex: 1; padding-bottom: 8px; min-width: 180px;">
-            <div class="profile-name" id="p-name" style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--text);">Loading...</div>
+      <div class="profile-card" style="display: block; padding: 20px; overflow: hidden; border: 1px solid var(--b1); background: var(--s1); border-radius: var(--rl);">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;">
+          <div class="profile-avatar" id="p-avatar" onclick="toggleEditProfile()" title="Change Profile Photo" style="width: 100px; height: 100px; font-size: 36px; border: 4px solid var(--s1); background: var(--s2); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">👤</div>
+          <div style="flex: 1; min-width: 180px;">
+            <div class="profile-name" id="p-name" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--text);">Loading...</div>
             <div class="profile-email" id="p-email" style="font-size: 13px; color: var(--td);">user@nexus.io</div>
+            <div id="p-level-tag" style="font-size: 11px; font-weight: 600; color: var(--accent); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px;">Level 1 Novice</div>
           </div>
-          <button class="btn btn-p btn-sm" onclick="toggleEditProfile()" style="margin-bottom: 8px;">✎ Edit Profile</button>
+          <button class="btn btn-p btn-sm" onclick="toggleEditProfile()">✎ Edit Profile</button>
         </div>
 
-        <div style="padding: 0 24px 24px 24px;">
-          <div class="profile-edit-form" id="p-edit-form" style="max-width: 100%; margin-bottom: 24px;">
-            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
-              <div>
-                <div class="fl" style="margin-bottom:8px">Choose Avatar</div>
-                <div class="avatar-presets" id="p-presets">
-                  <!-- Presets injected by JS -->
-                </div>
-                <div class="fg" style="margin-top:12px">
-                  <label class="fl">Custom Image URL</label>
-                  <input type="text" class="fi" id="f-pavatar" placeholder="https://..." oninput="previewAvatar(this.value)">
-                </div>
+        <div class="profile-edit-form" id="p-edit-form" style="max-width: 100%; margin-bottom: 24px; border: 1px dashed var(--b2); background: var(--s1);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <div class="fl" style="margin-bottom:8px">Profile Image</div>
+              <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px">
+                <button class="btn btn-g btn-sm" onclick="document.getElementById('f-pupload').click()">📁 Use Local File</button>
+                <input type="file" id="f-pupload" style="display:none" accept="image/*" onchange="handleFile(event)">
+                <span style="font-size:10px; color:var(--tm)">Supports JPG, PNG</span>
               </div>
-              <div class="fg">
-                <label class="fl">Display Name</label>
-                <input type="text" class="fi" id="f-pname" placeholder="Your Name">
-                <div style="margin-top:auto; font-size:11px; color:var(--tm); background:var(--s1); padding:10px; border-radius:var(--r); border:1px solid var(--b1);">
-                  Your profile photo and name are synced across all your devices.
-                </div>
+              <div class="avatar-presets" id="p-presets"></div>
+              <div class="fg" style="margin-top:10px">
+                <input type="text" class="fi" id="f-pavatar" placeholder="Or paste image URL..." oninput="previewAvatar(this.value)">
               </div>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; border-top: 1px solid var(--b1); padding-top: 16px;">
-              <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">Cancel</button>
-              <button class="btn btn-p btn-sm" onclick="saveProfile()">Save Changes</button>
+            <div class="fg">
+              <label class="fl">Display Name</label>
+              <input type="text" class="fi" id="f-pname" placeholder="Your Name">
+              <div style="margin-top:10px; font-size:11px; color:var(--tm); background:var(--s2); padding:10px; border-radius:var(--r); border:1px solid var(--b1);">
+                Click <strong>Save</strong> to sync your changes.
+              </div>
             </div>
           </div>
+          <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; border-top: 1px solid var(--b1); padding-top: 12px;">
+            <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">Cancel</button>
+            <button class="btn btn-p btn-sm" onclick="saveProfile()">Save Changes</button>
+          </div>
+        </div>
 
           <div class="profile-level-box" style="background: var(--s2); border-radius: var(--rl); padding: 16px; border: 1px solid var(--b1);">
             <div class="profile-level-label">
@@ -2492,6 +2491,20 @@ function toggleEditProfile() {
   form.classList.toggle('on');
 }
 
+function handleFile(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')) { toast('Please select an image file','e'); return; }
+  if(file.size > 2 * 1024 * 1024) { toast('Image is too large (max 2MB)','e'); return; }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pickAvatar(ev.target.result);
+    toast('Image loaded! Click Save to confirm.','s');
+  };
+  reader.readAsDataURL(file);
+}
+
 const AVATAR_SEEDS = ['Felix', 'Aneka', 'Mia', 'Buddy', 'Max', 'Luna', 'Oscar', 'Buster', 'Coco', 'Ruby'];
 function renderAvatarPresets() {
   const container = document.getElementById('p-presets');
@@ -2515,22 +2528,20 @@ function previewAvatar(url) {
   const pAv = document.getElementById('p-avatar');
   const sbAv = document.getElementById('sb-avatar-img');
   
-  if(url && url.startsWith('http')) {
-    [pAv, sbAv].forEach(el => {
-      if(el) {
-        el.style.backgroundImage = `url(${url})`;
-        el.style.backgroundSize = 'cover';
-        el.textContent = '';
-      }
-    });
-  } else {
-    [pAv, sbAv].forEach(el => {
-      if(el) {
-        el.style.backgroundImage = 'none';
-        el.textContent = '👤';
-      }
-    });
-  }
+  const apply = (el) => {
+    if(!el) return;
+    if(url && (url.startsWith('http') || url.startsWith('data:image'))) {
+      el.style.backgroundImage = `url(${url})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = 'none';
+      el.textContent = '👤';
+    }
+  };
+  apply(pAv);
+  apply(sbAv);
 }
 
 async function saveProfile() {
@@ -2625,12 +2636,18 @@ function refreshAll() {
     const totalXP = (totalCompleted * 10) + Math.floor(totalFocus / 60);
     const level = Math.floor(totalXP / 100) + 1;
     const levelTags = ['Novice', 'Apprentice', 'Practitioner', 'Ace', 'Master', 'Grandmaster', 'Legend'];
+    const levelTag = `Level ${level} ${levelTags[Math.min(level-1, levelTags.length-1)]}`;
     document.getElementById('sb-userlevel').textContent = levelTags[Math.min(level-1, levelTags.length-1)];
+    const pLevel = document.getElementById('p-level-tag');
+    if(pLevel) pLevel.textContent = levelTag;
     
-    if(user.photoURL) {
+    const photo = user.photoURL;
+    if(photo) {
       const sbAv = document.getElementById('sb-avatar-img');
-      sbAv.style.backgroundImage = `url(${user.photoURL})`;
-      sbAv.textContent = '';
+      const pAv = document.getElementById('p-avatar');
+      [sbAv, pAv].forEach(el => {
+        if(el) { el.style.backgroundImage = `url(${photo})`; el.style.backgroundSize = 'cover'; el.textContent = ''; }
+      });
     }
   }
 }
