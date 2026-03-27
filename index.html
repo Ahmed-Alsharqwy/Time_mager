@@ -356,8 +356,22 @@ canvas{width:100%!important;display:block;max-width:100%}
 .p-stat-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 16px; display: flex; flex-direction: column; gap: 4px; transition: transform var(--ease); }
 .p-stat-card:hover { transform: translateY(-2px); border-color: var(--b2); }
 .p-stat-icon { font-size: 20px; margin-bottom: 4px; }
-.p-stat-val { font-size: 24px; font-weight: 800; font-family: var(--mono); color: var(--text); }
 .p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
+.profile-edit-form { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 16px; background: var(--s2); padding: 16px; border-radius: var(--rl); border: 1px solid var(--b1); }
+.profile-edit-form.on { display: flex; }
+
+/* ── WELLNESS CARD ────────────────────────── */
+.wellness-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 18px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
+.wellness-card::after { content: '💧'; position: absolute; right: -10px; top: -10px; font-size: 80px; opacity: 0.05; pointer-events: none; }
+.wellness-header { display: flex; justify-content: space-between; align-items: center; }
+.wellness-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.water-tracker { display: flex; flex-direction: column; gap: 8px; }
+.water-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--td); }
+.water-count { color: var(--blue); font-weight: 700; font-family: var(--mono); }
+.water-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.water-drop { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--blue); display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: all var(--ease); color: var(--blue); }
+.water-drop.filled { background: var(--blue); color: white; border-color: var(--blue); box-shadow: 0 0 8px var(--blue-bg); }
+.wellness-tip { font-size: 11px; color: var(--tm); font-style: italic; background: var(--s2); padding: 8px 12px; border-radius: var(--r); border-left: 2px solid var(--accent); }
 
 /* ── RESPONSIVE ───────────────────────────── */
 @media (max-width:900px){
@@ -518,44 +532,47 @@ canvas{width:100%!important;display:block;max-width:100%}
     <div id="view-dashboard" class="view active">
       <div id="d-notif-bar" style="display:none"></div>
       
-      <!-- Focused Daily Goals -->
-      <div class="sh"><div class="st">📅 <em>Today's Focus</em></div></div>
-      <div id="d-today-list" class="task-tree"></div>
+      <div style="margin-bottom: 8px;">
+        <h2 style="font-size: 24px; font-weight: 800;" id="d-greeting">Welcome back! 👋</h2>
+        <p style="font-size: 13px; color: var(--tm);" id="d-tip">Focus on your goals and stay consistent.</p>
+      </div>
 
-      <div id="d-overdue" style="display:none"></div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+           <div class="sh"><div class="st">📅 <em>Today's Focus</em></div></div>
+           <div id="d-today-list" class="task-tree"></div>
+           <div id="d-overdue" style="display:none"></div>
+           <div id="d-mit"></div>
+        </div>
 
-      <div id="d-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div id="d-mit"></div>
-        <div class="card">
-          <div style="font-size:12px;font-weight:600;color:var(--td);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">⚡ Quick Add</div>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <input type="text" class="fi" id="qa-input" placeholder="Task name..." onkeydown="if(event.key==='Enter')quickAdd()">
-            <div style="display:flex;gap:6px">
-              <select class="fsel" id="qa-pri" style="flex:1">
-                <option value="medium">Medium</option>
-                <option value="high">🔴 High</option>
-                <option value="low">Low</option>
-              </select>
-              <select class="fsel" id="qa-level" style="flex:1">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="wellness-card">
+            <div class="wellness-header">
+              <span class="wellness-title">💧 Hydration</span>
+              <button class="btn btn-g btn-xs" onclick="resetWater()">Reset</button>
             </div>
-            <div style="display:flex;gap:6px">
-              <input type="time" class="fi" id="qa-time" placeholder="Due time" style="flex:1">
-              <button class="btn btn-p" onclick="quickAdd()" style="flex:1">+ Add</button>
+            <div class="water-tracker">
+              <div class="water-info">
+                <span>Daily Goal: 2000ml</span>
+                <span class="water-count" id="w-count">0 / 8 glasses</span>
+              </div>
+              <div class="pb" style="height: 6px;"><div class="pbf b" id="w-pb" style="width: 0%;"></div></div>
+              <div class="water-grid" id="w-grid">
+                <!-- Drop icons with glass count -->
+              </div>
+            </div>
+            <div class="wellness-tip" id="w-tip">
+              💡 Tip: Drink a glass of water every hour to stay sharp.
+            </div>
+          </div>
+
+          <div class="card" style="border-left: 3px solid var(--purple);">
+            <div style="font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">🧠 Focus Tip</div>
+            <div style="font-size: 12px; color: var(--td); line-height: 1.5;" id="f-tip">
+              Break large tasks into 25-minute Pomodoro sessions to maintain high energy.
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="sh" style="margin-bottom:9px">
-          <div style="font-size:12px;font-weight:600;color:var(--td);text-transform:uppercase;letter-spacing:.6px">🕒 Today's Activity</div>
-          <button class="btn btn-g btn-sm" onclick="switchView('log')">View All →</button>
-        </div>
-        <div class="tl" id="d-tl"></div>
       </div>
     </div>
 
@@ -568,7 +585,18 @@ canvas{width:100%!important;display:block;max-width:100%}
         <div>
           <div class="profile-name" id="p-name">Loading...</div>
           <div class="profile-email" id="p-email">user@nexus.io</div>
+          <button class="btn btn-g btn-xs" style="margin-top: 8px;" onclick="toggleEditProfile()">✎ Edit Profile</button>
         </div>
+        
+        <div class="profile-edit-form" id="p-edit-form">
+          <div class="fg"><label class="fl">Display Name</label><input type="text" class="fi" id="f-pname" placeholder="Your Name"></div>
+          <div class="fg"><label class="fl">Avatar URL</label><input type="text" class="fi" id="f-pavatar" placeholder="https://..."></div>
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <button class="btn btn-p btn-sm" style="flex: 1;" onclick="saveProfile()">Save</button>
+            <button class="btn btn-g btn-sm" style="flex: 1;" onclick="toggleEditProfile()">Cancel</button>
+          </div>
+        </div>
+
         <div class="profile-level-box">
           <div class="profile-level-label">
             <span id="p-level-tag">Level 1 Novice</span>
@@ -935,7 +963,8 @@ const DB = {
     nx2_sessions: [],
     nx2_streak: {count:0,lastDate:null},
     nx2_meta: {lastPlanning:null,notifSeen:[]},
-    nx2_focus: null
+    nx2_focus: null,
+    nx2_wellness: { water: 0, lastDate: null }
   },
   _saveTimer: null,
   
@@ -967,10 +996,12 @@ const DB = {
   saveMeta(v)    { this._save('nx2_meta',v); },
   getFocusState(){ return this._load('nx2_focus',null); },
   saveFocusState(v){ this._save('nx2_focus',v); },
+  getWellness()  { return this._load('nx2_wellness',{water:0,lastDate:null}); },
+  saveWellness(v){ this._save('nx2_wellness',v); },
   
   initLocal() {
     if (!currentUserId) return;
-    ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus'].forEach(k => {
+    ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus','nx2_wellness'].forEach(k => {
       try{ 
         const v = localStorage.getItem(`${currentUserId}_${k}`);
         let old_v = null;
@@ -987,7 +1018,8 @@ const DB = {
   clearState() {
      this._state = {
        nx2_tasks: [], nx2_goals: [], nx2_logs: [], nx2_sessions: [],
-       nx2_streak: {count:0,lastDate:null}, nx2_meta: {lastPlanning:null,notifSeen:[]}, nx2_focus: null
+       nx2_streak: {count:0,lastDate:null}, nx2_meta: {lastPlanning:null,notifSeen:[]}, nx2_focus: null,
+       nx2_wellness: {water:0,lastDate:null}
      };
   }
 };
@@ -1489,6 +1521,33 @@ const TM = {
 };
 
 // ═══════════════════════════════════════════
+// WELLNESS MANAGER
+// ═══════════════════════════════════════════
+const WM = {
+  get() {
+    const w = DB.getWellness();
+    if(w.lastDate !== todayStr()) {
+      w.water = 0; w.lastDate = todayStr();
+      DB.saveWellness(w);
+    }
+    return w;
+  },
+  logWater(n) {
+    const w = this.get();
+    w.water = Math.min(12, w.water + 1);
+    DB.saveWellness(w);
+    renderDashboard();
+    toast('💧 Stay hydrated!','blue');
+  },
+  resetWater() {
+    const w = this.get();
+    w.water = 0;
+    DB.saveWellness(w);
+    renderDashboard();
+  }
+};
+
+// ═══════════════════════════════════════════
 // FOCUS MANAGER
 // ═══════════════════════════════════════════
 const FM = {
@@ -1881,11 +1940,40 @@ function renderTimeline(logs, containerId) {
 function renderDashboard() {
   const stats = TM.stats();
   const streak = SM.get();
-  const focus = FM.todayFocusTime();
-  const logs = DB.getLogs();
+  const wellness = WM.get();
+  const user = auth.currentUser;
   
+  if(user) {
+    const name = user.displayName || user.email.split('@')[0];
+    const hrs = new Date().getHours();
+    const greet = hrs < 12 ? 'Good Morning' : hrs < 18 ? 'Good Afternoon' : 'Good Evening';
+    document.getElementById('d-greeting').textContent = `${greet}, ${name}! 👋`;
+  }
+
   // Update Streak in sidebar
   document.getElementById('sb-streak').textContent = streak.count;
+
+  // Render Wellness
+  document.getElementById('w-count').textContent = `${wellness.water} / 8 glasses`;
+  document.getElementById('w-pb').style.width = Math.min(100, (wellness.water/8)*100) + '%';
+  const grid = document.getElementById('w-grid');
+  grid.innerHTML = '';
+  for(let i=1; i<=12; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'water-drop' + (i <= wellness.water ? ' filled' : '');
+    drop.textContent = '💧';
+    drop.onclick = () => WM.logWater();
+    grid.appendChild(drop);
+  }
+
+  const tips = [
+    "Drink water every hour to stay sharp.",
+    "A hydrated brain is a productive brain.",
+    "Time for a quick stretch?",
+    "Take 5 minutes to breathe deeply.",
+    "Stand up and move for 60 seconds."
+  ];
+  document.getElementById('w-tip').textContent = "💡 Tip: " + tips[Math.floor(Math.random()*tips.length)];
 
   // Render Today's Tasks
   const todayTasks = DB.getTasks().filter(t => 
@@ -1947,7 +2035,15 @@ function renderDashboard() {
     </div>`;
   } else da.style.display='none';
 
-  renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
+  // Tip
+  const fTips = [
+    "Break large tasks into 25-minute Pomodoro sessions.",
+    "Turn off notifications for deep focus work.",
+    "A clear desk leads to a clear mind.",
+    "Single-tasking is more efficient than multi-tasking.",
+    "The hardest part is starting. Commit to 5 minutes."
+  ];
+  document.getElementById('f-tip').textContent = fTips[Math.floor(Math.random()*fTips.length)];
 }
 
 // ═══════════════════════════════════════════
@@ -2337,6 +2433,35 @@ function _rRect(ctx,x,y,w,h,r){
   ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
   ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
 }
+
+function toggleEditProfile() {
+  const form = document.getElementById('p-edit-form');
+  const user = auth.currentUser;
+  if(user && !form.classList.contains('on')) {
+    document.getElementById('f-pname').value = user.displayName || '';
+    document.getElementById('f-pavatar').value = user.photoURL || '';
+  }
+  form.classList.toggle('on');
+}
+
+async function saveProfile() {
+  const name = document.getElementById('f-pname').value.trim();
+  const avatar = document.getElementById('f-pavatar').value.trim();
+  const user = auth.currentUser;
+  if(!user) return;
+  
+  try {
+    await user.updateProfile({ displayName: name, photoURL: avatar });
+    toast('Profile updated successfully!','s');
+    toggleEditProfile();
+    refreshAll();
+  } catch(e) {
+    console.error(e);
+    toast('Error updating profile','e');
+  }
+}
+
+function resetWater() { WM.resetWater(); }
 
 // ═══════════════════════════════════════════
 // LOG VIEW
