@@ -368,6 +368,11 @@ canvas{width:100%!important;display:block;max-width:100%}
 .profile-avatar:hover { transform: scale(1.02); }
 .profile-avatar::after { content: '✎'; position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; opacity: 0; transition: opacity var(--ease); z-index: 3; }
 .profile-avatar:hover::after { opacity: 1; }
+.photo-adjust { background: var(--s2); border-radius: var(--r); padding: 12px; margin-top: 10px; border: 1px solid var(--b1); }
+.adjust-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 11px; }
+.adjust-row label { min-width: 45px; color: var(--tm); font-weight: 600; }
+.adjust-row input[type="range"] { flex: 1; height: 4px; background: var(--b1); border-radius: 2px; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.adjust-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; border: 2px solid var(--s1); box-shadow: 0 0 5px var(--a-glow); }
 
 /* ── DASHBOARD TODO ───────────────────────── */
 .todo-hero { background: linear-gradient(135deg, var(--s1), var(--s2)); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
@@ -610,6 +615,12 @@ canvas{width:100%!important;display:block;max-width:100%}
               <div class="avatar-presets" id="p-presets"></div>
               <div class="fg" style="margin-top:10px">
                 <input type="text" class="fi" id="f-pavatar" placeholder="Or paste image URL..." oninput="previewAvatar(this.value)">
+              </div>
+              <div class="photo-adjust" id="photo-adj-box">
+                <div class="fl" style="margin-bottom:8px; font-size:10px; text-transform:uppercase; letter-spacing:1px">Framing Adjustment</div>
+                <div class="adjust-row"><label>Zoom</label><input type="range" id="f-pzoom" min="100" max="300" value="100" oninput="previewAvatar()"></div>
+                <div class="adjust-row"><label>X Pos</label><input type="range" id="f-px" min="0" max="100" value="50" oninput="previewAvatar()"></div>
+                <div class="adjust-row"><label>Y Pos</label><input type="range" id="f-py" min="0" max="100" value="50" oninput="previewAvatar()"></div>
               </div>
             </div>
             <div class="fg">
@@ -994,7 +1005,8 @@ const DB = {
     nx2_streak: {count:0,lastDate:null},
     nx2_meta: {lastPlanning:null,notifSeen:[]},
     nx2_focus: null,
-    nx2_wellness: { water: 0, lastDate: null }
+    nx2_wellness: { water: 0, lastDate: null },
+    nx2_photo: { x: 50, y: 50, z: 100 }
   },
   _saveTimer: null,
   
@@ -1028,6 +1040,8 @@ const DB = {
   saveFocusState(v){ this._save('nx2_focus',v); },
   getWellness()  { return this._load('nx2_wellness',{water:0,lastDate:null}); },
   saveWellness(v){ this._save('nx2_wellness',v); },
+  getPhoto()     { return this._load('nx2_photo',{x:50,y:50,z:100}); },
+  savePhoto(v)   { this._save('nx2_photo',v); },
   
   initLocal() {
     if (!currentUserId) return;
@@ -2486,6 +2500,10 @@ function toggleEditProfile() {
   if(user && !form.classList.contains('on')) {
     document.getElementById('f-pname').value = user.displayName || '';
     document.getElementById('f-pavatar').value = user.photoURL || '';
+    const cfg = DB.getPhoto();
+    document.getElementById('f-px').value = cfg.x;
+    document.getElementById('f-py').value = cfg.y;
+    document.getElementById('f-pzoom').value = cfg.z;
     renderAvatarPresets();
   }
   form.classList.toggle('on');
@@ -2527,13 +2545,17 @@ function pickAvatar(url) {
 function previewAvatar(url) {
   const pAv = document.getElementById('p-avatar');
   const sbAv = document.getElementById('sb-avatar-img');
+  const photoUrl = url || document.getElementById('f-pavatar').value;
+  const x = document.getElementById('f-px').value;
+  const y = document.getElementById('f-py').value;
+  const z = document.getElementById('f-pzoom').value;
   
   const apply = (el) => {
     if(!el) return;
-    if(url && (url.startsWith('http') || url.startsWith('data:image'))) {
-      el.style.backgroundImage = `url(${url})`;
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
+    if(photoUrl && (photoUrl.startsWith('http') || photoUrl.startsWith('data:image'))) {
+      el.style.backgroundImage = `url(${photoUrl})`;
+      el.style.backgroundSize = `${z}%`;
+      el.style.backgroundPosition = `${x}% ${y}%`;
       el.textContent = '';
     } else {
       el.style.backgroundImage = 'none';
@@ -2558,11 +2580,18 @@ async function saveProfile() {
 
   try {
     await user.updateProfile({ displayName: name, photoURL: avatar });
-    // CorrectedFirestore instance is 'firestore', not 'db'
+    
+    const x=parseInt(document.getElementById('f-px').value),
+          y=parseInt(document.getElementById('f-py').value),
+          z=parseInt(document.getElementById('f-pzoom').value);
+    
+    DB.savePhoto({x,y,z});
+
     if(firestore) {
       await firestore.collection('users').doc(user.uid).set({
         displayName: name,
         photoURL: avatar,
+        photoX: x, photoY: y, photoZoom: z,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }
@@ -2642,11 +2671,17 @@ function refreshAll() {
     if(pLevel) pLevel.textContent = levelTag;
     
     const photo = user.photoURL;
+    const cfg = DB.getPhoto();
     if(photo) {
       const sbAv = document.getElementById('sb-avatar-img');
       const pAv = document.getElementById('p-avatar');
       [sbAv, pAv].forEach(el => {
-        if(el) { el.style.backgroundImage = `url(${photo})`; el.style.backgroundSize = 'cover'; el.textContent = ''; }
+        if(el) { 
+          el.style.backgroundImage = `url(${photo})`; 
+          el.style.backgroundSize = `${cfg.z}%`; 
+          el.style.backgroundPosition = `${cfg.x}% ${cfg.y}%`; 
+          el.textContent = ''; 
+        }
       });
     }
   }
