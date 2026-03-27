@@ -83,12 +83,12 @@ body{overflow:hidden}
 #sidebar{
   width:var(--sb-w);min-width:var(--sb-w);
   background:var(--s1);border-right:1px solid var(--b1);
-  display:flex;flex-direction:column;overflow:hidden;
+  display:flex;flex-direction:column;overflow-y:auto;
   transition:transform .3s ease;z-index:200;flex-shrink:0;
 }
-.sb-logo{padding:16px 16px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
-.sb-logo-text .lt{font-size:20px;font-weight:800;letter-spacing:4px;color:var(--accent);font-family:var(--mono)}
-.sb-logo-text .ls{font-size:9px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.sb-logo{padding:20px 16px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:auto;border-top:1px solid var(--b1)}
+.sb-logo-text .lt{font-size:22px;font-weight:900;letter-spacing:5px;color:var(--accent);font-family:var(--mono);text-shadow:0 0 15px var(--a-glow)}
+.sb-logo-text .ls{font-size:8px;color:var(--tm);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;font-weight:700}
 #sb-close{display:none;background:none;border:none;color:var(--td);cursor:pointer;font-size:18px;padding:4px;border-radius:var(--r);transition:all var(--ease)}
 #sb-close:hover{background:var(--s2);color:var(--text)}
 .sb-nav{flex:1;padding:8px 0;overflow-y:auto}
@@ -357,8 +357,17 @@ canvas{width:100%!important;display:block;max-width:100%}
 .p-stat-card:hover { transform: translateY(-2px); border-color: var(--b2); }
 .p-stat-icon { font-size: 20px; margin-bottom: 4px; }
 .p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
-.profile-edit-form { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 16px; background: var(--s2); padding: 16px; border-radius: var(--rl); border: 1px solid var(--b1); }
+.p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
+.profile-edit-form { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 480px; margin-top: 16px; background: var(--s2); padding: 20px; border-radius: var(--rl); border: 1px solid var(--b1); }
 .profile-edit-form.on { display: flex; }
+.avatar-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.avatar-preset { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--b1); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all var(--ease); background: var(--s1); }
+.avatar-preset:hover { border-color: var(--accent); transform: scale(1.1); }
+.avatar-preset.active { border-color: var(--accent); background: var(--a-dim); box-shadow: 0 0 10px var(--a-glow); }
+.profile-avatar { position: relative; cursor: pointer; transition: transform var(--ease); }
+.profile-avatar:hover { transform: scale(1.02); }
+.profile-avatar::after { content: '✎'; position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; opacity: 0; transition: opacity var(--ease); z-index: 3; }
+.profile-avatar:hover::after { opacity: 1; }
 
 /* ── DASHBOARD TODO ───────────────────────── */
 .todo-hero { background: linear-gradient(135deg, var(--s1), var(--s2)); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
@@ -387,12 +396,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 .wellness-tip { font-size: 11px; color: var(--tm); font-style: italic; background: var(--s2); padding: 8px 12px; border-radius: var(--r); border-left: 2px solid var(--accent); }
 
 /* ── RESPONSIVE ───────────────────────────── */
-@media (max-width:900px){
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .ov-grid{grid-template-columns:repeat(3,1fr)}
-  #d-2col{grid-template-columns:1fr!important}
-}
-@media (max-width:768px){
+@media (max-width:850px){
   #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);z-index:200}
   #sidebar.open{transform:translateX(0)}
   #sb-overlay.on{display:block}
@@ -485,19 +489,19 @@ canvas{width:100%!important;display:block;max-width:100%}
 
   <!-- ════ SIDEBAR ════ -->
   <nav id="sidebar">
-    <div class="sb-profile" onclick="switchView('profile')" title="View Profile">
-      <div class="sb-avatar" id="sb-avatar-img">👤</div>
-      <div class="sb-user-info">
-        <div class="sb-username" id="sb-username">User</div>
-        <div class="sb-userlevel" id="sb-userlevel">Novice</div>
-      </div>
-    </div>
     <div class="sb-logo">
       <div class="sb-logo-text">
         <div class="lt">NEXUS</div>
         <div class="ls">Discipline OS</div>
       </div>
       <button id="sb-close" onclick="closeSidebar()" title="Close">✕</button>
+    </div>
+    <div class="sb-profile" onclick="switchView('profile')" title="View Profile">
+      <div class="sb-avatar" id="sb-avatar-img">👤</div>
+      <div class="sb-user-info">
+        <div class="sb-username" id="sb-username">User</div>
+        <div class="sb-userlevel" id="sb-userlevel">Novice</div>
+      </div>
     </div>
     <div class="sb-nav">
       <div class="nav-item" data-view="profile"><span class="nav-icon">👤</span>Profile</div>
@@ -583,24 +587,41 @@ canvas{width:100%!important;display:block;max-width:100%}
 
     <!-- ══ PROFILE VIEW ══ -->
     <div id="view-profile" class="view">
-      <div class="profile-card" style="display: block; padding: 0; overflow: hidden;">
-        <div style="height: 100px; background: linear-gradient(to right, var(--s2), var(--b2));"></div>
-        <div style="padding: 24px; margin-top: -60px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end;">
-          <div class="profile-avatar" id="p-avatar" style="width: 120px; height: 120px; font-size: 40px; border: 4px solid var(--bg); background: var(--s1);">👤</div>
-          <div style="flex: 1; padding-bottom: 8px;">
-            <div class="profile-name" id="p-name" style="font-size: 28px;">Loading...</div>
-            <div class="profile-email" id="p-email">user@nexus.io</div>
+      <div class="profile-card" style="display: block; padding: 0; overflow: hidden; border: 1px solid var(--b1); background: var(--s1); border-radius: var(--rl);">
+        <div style="height: 140px; background: linear-gradient(45deg, var(--s3) 25%, transparent 25%), linear-gradient(-45deg, var(--s3) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--s3) 75%), linear-gradient(-45deg, transparent 75%, var(--s3) 75%); background-size: 20px 20px; background-color: var(--s2); position: relative; overflow: hidden;">
+          <div style="position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, var(--a-glow), transparent 70%);"></div>
+        </div>
+        <div style="padding: 24px; margin-top: -70px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; position: relative; z-index: 2;">
+          <div class="profile-avatar" id="p-avatar" onclick="toggleEditProfile()" title="Change Profile Photo" style="width: 130px; height: 130px; font-size: 48px; border: 6px solid var(--s1); background: var(--s2); box-shadow: 0 8px 30px rgba(0,0,0,0.4);">👤</div>
+          <div style="flex: 1; padding-bottom: 12px; min-width: 200px;">
+            <div class="profile-name" id="p-name" style="font-size: 32px; font-weight: 800; letter-spacing: -0.5px; color: var(--text);">Loading...</div>
+            <div class="profile-email" id="p-email" style="font-size: 14px; color: var(--td);">user@nexus.io</div>
           </div>
-          <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">✎ Edit Profile</button>
+          <button class="btn btn-p btn-sm" onclick="toggleEditProfile()" style="margin-bottom: 12px;">✎ Edit Profile</button>
         </div>
 
         <div style="padding: 0 24px 24px 24px;">
           <div class="profile-edit-form" id="p-edit-form" style="max-width: 100%; margin-bottom: 24px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div class="fg"><label class="fl">Display Name</label><input type="text" class="fi" id="f-pname" placeholder="Your Name"></div>
-              <div class="fg"><label class="fl">Avatar URL</label><input type="text" class="fi" id="f-pavatar" placeholder="https://..."></div>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
+              <div>
+                <div class="fl" style="margin-bottom:8px">Choose Avatar</div>
+                <div class="avatar-presets" id="p-presets">
+                  <!-- Presets injected by JS -->
+                </div>
+                <div class="fg" style="margin-top:12px">
+                  <label class="fl">Custom Image URL</label>
+                  <input type="text" class="fi" id="f-pavatar" placeholder="https://..." oninput="previewAvatar(this.value)">
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl">Display Name</label>
+                <input type="text" class="fi" id="f-pname" placeholder="Your Name">
+                <div style="margin-top:auto; font-size:11px; color:var(--tm); background:var(--s1); padding:10px; border-radius:var(--r); border:1px solid var(--b1);">
+                  Your profile photo and name are synced across all your devices.
+                </div>
+              </div>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
+            <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; border-top: 1px solid var(--b1); padding-top: 16px;">
               <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">Cancel</button>
               <button class="btn btn-p btn-sm" onclick="saveProfile()">Save Changes</button>
             </div>
@@ -2466,8 +2487,50 @@ function toggleEditProfile() {
   if(user && !form.classList.contains('on')) {
     document.getElementById('f-pname').value = user.displayName || '';
     document.getElementById('f-pavatar').value = user.photoURL || '';
+    renderAvatarPresets();
   }
   form.classList.toggle('on');
+}
+
+const AVATAR_SEEDS = ['Felix', 'Aneka', 'Mia', 'Buddy', 'Max', 'Luna', 'Oscar', 'Buster', 'Coco', 'Ruby'];
+function renderAvatarPresets() {
+  const container = document.getElementById('p-presets');
+  if(!container) return;
+  const current = document.getElementById('f-pavatar').value;
+  
+  container.innerHTML = AVATAR_SEEDS.map(seed => {
+    const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+    const active = current === url ? 'active' : '';
+    return `<div class="avatar-preset ${active}" onclick="pickAvatar('${url}')" style="background-image:url(${url}); background-size:cover;"></div>`;
+  }).join('');
+}
+
+function pickAvatar(url) {
+  document.getElementById('f-pavatar').value = url;
+  previewAvatar(url);
+  renderAvatarPresets();
+}
+
+function previewAvatar(url) {
+  const pAv = document.getElementById('p-avatar');
+  const sbAv = document.getElementById('sb-avatar-img');
+  
+  if(url && url.startsWith('http')) {
+    [pAv, sbAv].forEach(el => {
+      if(el) {
+        el.style.backgroundImage = `url(${url})`;
+        el.style.backgroundSize = 'cover';
+        el.textContent = '';
+      }
+    });
+  } else {
+    [pAv, sbAv].forEach(el => {
+      if(el) {
+        el.style.backgroundImage = 'none';
+        el.textContent = '👤';
+      }
+    });
+  }
 }
 
 async function saveProfile() {
@@ -2476,14 +2539,29 @@ async function saveProfile() {
   const user = auth.currentUser;
   if(!user) return;
   
+  const btn = document.querySelector('#p-edit-form .btn-p');
+  const oldText = btn.textContent;
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
   try {
     await user.updateProfile({ displayName: name, photoURL: avatar });
+    // Also update Firestore if we have a user doc
+    await db.collection('users').doc(user.uid).set({
+      displayName: name,
+      photoURL: avatar,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
     toast('Profile updated successfully!','s');
     toggleEditProfile();
     refreshAll();
   } catch(e) {
     console.error(e);
     toast('Error updating profile','e');
+  } finally {
+    btn.textContent = oldText;
+    btn.disabled = false;
   }
 }
 
