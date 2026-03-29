@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Personal — Discipline OS</title>
+<title>NEXUS — Discipline OS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
@@ -67,7 +67,7 @@
 /* ── RESET ────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:13px;line-height:1.5}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5}
 body{overflow:hidden}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -81,14 +81,14 @@ body{overflow:hidden}
 
 /* ── SIDEBAR ──────────────────────────────── */
 #sidebar{
-  width:200px;min-width:200px;
+  width:var(--sb-w);min-width:var(--sb-w);
   background:var(--s1);border-right:1px solid var(--b1);
-  display:flex;flex-direction:column;overflow-y:auto;
+  display:flex;flex-direction:column;overflow:hidden;
   transition:transform .3s ease;z-index:200;flex-shrink:0;
 }
-.sb-logo{padding:20px 16px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:auto;border-top:1px solid var(--b1)}
-.sb-logo-text .lt{font-size:22px;font-weight:900;letter-spacing:5px;color:var(--accent);font-family:var(--mono);text-shadow:0 0 15px var(--a-glow)}
-.sb-logo-text .ls{font-size:8px;color:var(--tm);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;font-weight:700}
+.sb-logo{padding:16px 16px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.sb-logo-text .lt{font-size:20px;font-weight:800;letter-spacing:4px;color:var(--accent);font-family:var(--mono)}
+.sb-logo-text .ls{font-size:9px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
 #sb-close{display:none;background:none;border:none;color:var(--td);cursor:pointer;font-size:18px;padding:4px;border-radius:var(--r);transition:all var(--ease)}
 #sb-close:hover{background:var(--s2);color:var(--text)}
 .sb-nav{flex:1;padding:8px 0;overflow-y:auto}
@@ -106,6 +106,7 @@ body{overflow:hidden}
 .sb-user-info { min-width: 0; }
 .sb-username { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sb-userlevel { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .5px; }
+.sb-date { font-size: 10px; color: var(--tm); text-align: center; padding: 4px 0 0; letter-spacing: .3px; }
 
 /* ── MAIN ─────────────────────────────────── */
 #main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
@@ -344,69 +345,51 @@ canvas{width:100%!important;display:block;max-width:100%}
 .overdue-item:last-child{border-bottom:none}
 
 /* ── PROFILE VIEW ────────────────────────── */
-.profile-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-bottom: 16px; position: relative; overflow: hidden; }
+.profile-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 28px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; position: relative; overflow: hidden; }
 .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--blue), var(--purple)); }
-.sb-logo { display: none; }
-#sb-close { position: absolute; right: 8px; top: 8px; background: transparent; border: 0; color: var(--tm); font-size: 18px; cursor: pointer; padding: 4px; z-index: 201; border-radius: 4px; transition: background .2s; }
-@media (min-width: 851px) { #sb-close { display: none; } }
-#sb-close:hover { background: var(--b1); color: var(--text); }
-.sb-profile { padding: 24px 16px 16px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--b1); transition: background .2s; position: relative; }
-.profile-avatar { width: 80px; height: 80px; background: var(--s2); border: 2px solid var(--b1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.profile-avatar-wrap { position: relative; cursor: pointer; }
+.profile-avatar { width: 96px; height: 96px; background: var(--s2); border: 2px solid var(--b1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,.15); background-size: cover; background-position: center; transition: filter var(--ease); }
+.profile-avatar-wrap:hover .profile-avatar { filter: brightness(0.7); }
+.profile-avatar-overlay { position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--ease); font-size: 22px; pointer-events: none; }
+.profile-avatar-wrap:hover .profile-avatar-overlay { opacity: 1; }
+.profile-name-wrap { display: flex; align-items: center; gap: 7px; }
 .profile-name { font-size: 20px; font-weight: 800; color: var(--text); }
-.profile-email { font-size: 13px; color: var(--tm); margin-top: -8px; }
-.profile-level-box { width: 100%; max-width: 300px; margin-top: 8px; }
+.profile-name-edit-btn { background: none; border: 1px solid var(--b1); color: var(--tm); cursor: pointer; font-size: 11px; padding: 3px 7px; border-radius: var(--r); transition: all var(--ease); }
+.profile-name-edit-btn:hover { background: var(--s2); color: var(--text); border-color: var(--b2); }
+.profile-name-input { font-size: 18px; font-weight: 800; color: var(--text); background: var(--s2); border: 1px solid var(--accent); border-radius: var(--r); padding: 4px 10px; font-family: var(--ui); text-align: center; outline: none; }
+.profile-email { font-size: 13px; color: var(--tm); margin-top: -6px; }
+.profile-level-box { width: 100%; max-width: 320px; margin-top: 4px; }
 .profile-level-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--td); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
 .profile-xp { color: var(--accent); }
-.stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; width: 100%; }
-.p-stat-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 16px; display: flex; flex-direction: column; gap: 4px; transition: transform var(--ease); }
+.stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.p-stat-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 14px 12px; display: flex; flex-direction: column; gap: 3px; transition: transform var(--ease), border-color var(--ease); }
 .p-stat-card:hover { transform: translateY(-2px); border-color: var(--b2); }
-.p-stat-icon { font-size: 20px; margin-bottom: 4px; }
+.p-stat-icon { font-size: 18px; margin-bottom: 3px; }
+.p-stat-val { font-size: 22px; font-weight: 800; font-family: var(--mono); color: var(--text); }
 .p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
-.p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
-.profile-edit-form { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 480px; margin-top: 16px; background: var(--s2); padding: 20px; border-radius: var(--rl); border: 1px solid var(--b1); }
-.profile-edit-form.on { display: flex; }
-.avatar-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-.avatar-preset { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--b1); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all var(--ease); background: var(--s1); }
-.avatar-preset:hover { border-color: var(--accent); transform: scale(1.1); }
-.avatar-preset.active { border-color: var(--accent); background: var(--a-dim); box-shadow: 0 0 10px var(--a-glow); }
-.profile-avatar { position: relative; cursor: pointer; transition: transform var(--ease); }
-.profile-avatar:hover { transform: scale(1.02); }
-.profile-avatar::after { content: '✎'; position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; opacity: 0; transition: opacity var(--ease); z-index: 3; }
-.profile-avatar:hover::after { opacity: 1; }
-.photo-adjust { background: var(--s2); border-radius: var(--r); padding: 12px; margin-top: 10px; border: 1px solid var(--b1); }
-.adjust-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 11px; }
-.adjust-row label { min-width: 45px; color: var(--tm); font-weight: 600; }
-.adjust-row input[type="range"] { flex: 1; height: 4px; background: var(--b1); border-radius: 2px; -webkit-appearance: none; appearance: none; cursor: pointer; }
-.adjust-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; border: 2px solid var(--s1); box-shadow: 0 0 5px var(--a-glow); }
 
-/* ── DASHBOARD TODO ───────────────────────── */
-.todo-hero { background: linear-gradient(135deg, var(--s1), var(--s2)); border: 1px solid var(--b1); border-radius: var(--rl); padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-.todo-list-container { display: flex; flex-direction: column; gap: 12px; }
-.todo-item { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); padding: 14px 18px; display: flex; align-items: center; gap: 14px; transition: all var(--ease); cursor: pointer; }
-.todo-item:hover { border-color: var(--b2); transform: translateX(4px); background: var(--s2); }
-.todo-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--b2); display: flex; align-items: center; justify-content: center; transition: all var(--ease); flex-shrink: 0; }
-.todo-item:hover .todo-check { border-color: var(--accent); }
-.todo-item.done .todo-check { background: var(--green); border-color: var(--green); color: white; }
-.todo-item.done .todo-content { opacity: 0.5; text-decoration: line-through; }
-.todo-content { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.todo-title { font-size: 15px; font-weight: 600; color: var(--text); }
-.todo-meta { display: flex; gap: 10px; font-size: 11px; color: var(--tm); align-items: center; }
+/* ── DASHBOARD MINI STATS ────────────────── */
+.d-mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.d-ms { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 10px 12px; display: flex; align-items: center; gap: 9px; min-width: 0; }
+.d-ms-icon { font-size: 16px; flex-shrink: 0; }
+.d-ms-body { min-width: 0; }
+.d-ms-val { font-size: 18px; font-weight: 700; font-family: var(--mono); line-height: 1.1; }
+.d-ms-lbl { font-size: 9px; color: var(--tm); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+.d-ms.ca { border-color: rgba(245,158,11,.3); } .d-ms.ca .d-ms-val { color: var(--accent); }
+.d-ms.cg { border-color: rgba(52,211,153,.3); } .d-ms.cg .d-ms-val { color: var(--green); }
+.d-ms.cb { border-color: rgba(96,165,250,.3); } .d-ms.cb .d-ms-val { color: var(--blue); }
 
-/* ── WELLNESS CARD ────────────────────────── */
-.wellness-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 18px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
-.wellness-card::after { content: '💧'; position: absolute; right: -10px; top: -10px; font-size: 80px; opacity: 0.05; pointer-events: none; }
-.wellness-header { display: flex; justify-content: space-between; align-items: center; }
-.wellness-title { font-size: 14px; font-weight: 700; color: var(--text); }
-.water-tracker { display: flex; flex-direction: column; gap: 8px; }
-.water-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--td); }
-.water-count { color: var(--blue); font-weight: 700; font-family: var(--mono); }
-.water-grid { display: flex; gap: 6px; flex-wrap: wrap; }
-.water-drop { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--blue); display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: all var(--ease); color: var(--blue); }
-.water-drop.filled { background: var(--blue); color: white; border-color: var(--blue); box-shadow: 0 0 8px var(--blue-bg); }
-.wellness-tip { font-size: 11px; color: var(--tm); font-style: italic; background: var(--s2); padding: 8px 12px; border-radius: var(--r); border-left: 2px solid var(--accent); }
 
-/* ── RESPONSIVE ───────────────────────────── */
-@media (max-width:850px){
+@media (max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .ov-grid{grid-template-columns:repeat(3,1fr)}
+  #d-2col{grid-template-columns:1fr!important}
+}
+@media (max-width:600px){
+  .d-mini-stats{grid-template-columns:1fr 1fr}
+  .d-mini-stats .d-ms:last-child{grid-column:1/-1}
+}
+@media (max-width:768px){
   #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);z-index:200}
   #sidebar.open{transform:translateX(0)}
   #sb-overlay.on{display:block}
@@ -499,7 +482,6 @@ canvas{width:100%!important;display:block;max-width:100%}
 
   <!-- ════ SIDEBAR ════ -->
   <nav id="sidebar">
-    <button id="sb-close" onclick="closeSidebar()" title="Close">✕</button>
     <div class="sb-profile" onclick="switchView('profile')" title="View Profile">
       <div class="sb-avatar" id="sb-avatar-img">👤</div>
       <div class="sb-user-info">
@@ -507,12 +489,20 @@ canvas{width:100%!important;display:block;max-width:100%}
         <div class="sb-userlevel" id="sb-userlevel">Novice</div>
       </div>
     </div>
+    <div class="sb-logo">
+      <div class="sb-logo-text">
+        <div class="lt">NEXUS</div>
+        <div class="ls">Discipline OS</div>
+      </div>
+      <button id="sb-close" onclick="closeSidebar()" title="Close">✕</button>
+    </div>
     <div class="sb-nav">
       <div class="nav-item" data-view="profile"><span class="nav-icon">👤</span>Profile</div>
       <div class="nav-item active" data-view="dashboard"><span class="nav-icon">⚡</span>Dashboard</div>
       <div class="nav-item" data-view="tasks"><span class="nav-icon">✦</span>Tasks</div>
       <div class="nav-item" data-view="goals"><span class="nav-icon">◎</span>Goals</div>
       <div class="nav-item" data-view="analytics"><span class="nav-icon">▦</span>Analytics</div>
+      <div class="nav-item" data-view="log"><span class="nav-icon">◈</span>Activity Log</div>
     </div>
     <div class="sb-footer">
       <div class="streak-box">
@@ -553,96 +543,80 @@ canvas{width:100%!important;display:block;max-width:100%}
     <div id="view-dashboard" class="view active">
       <div id="d-notif-bar" style="display:none"></div>
       
-      <div class="todo-hero">
-        <div style="flex: 1;">
-          <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 4px;" id="d-greeting">Welcome back! 👋</h2>
-          <p style="font-size: 14px; color: var(--tm);" id="d-tip">You have <span id="d-task-count" style="color:var(--accent);font-weight:700">0</span> tasks ready for execution today.</p>
-        </div>
-        <div class="wellness-card" style="width: 300px; padding: 14px; gap: 10px;">
-          <div class="wellness-header">
-            <span class="wellness-title">💧 Hydration</span>
-            <span class="water-count" id="w-count" style="font-size:12px">0/8</span>
+      <!-- Mini Stats Strip -->
+      <div class="d-mini-stats" id="d-mini-stats">
+        <div class="d-ms cg"><div class="d-ms-icon">✅</div><div class="d-ms-body"><div class="d-ms-val" id="d-ms-done">0</div><div class="d-ms-lbl">Done Today</div></div></div>
+        <div class="d-ms cb"><div class="d-ms-icon">⏱</div><div class="d-ms-body"><div class="d-ms-val" id="d-ms-focus">0m</div><div class="d-ms-lbl">Focus Today</div></div></div>
+        <div class="d-ms ca"><div class="d-ms-icon">🔥</div><div class="d-ms-body"><div class="d-ms-val" id="d-ms-streak">0</div><div class="d-ms-lbl">Day Streak</div></div></div>
+      </div>
+
+      <!-- Focused Daily Goals -->
+      <div class="sh"><div class="st">📅 <em>Today's Focus</em></div></div>
+      <div id="d-today-list" class="task-tree"></div>
+
+      <div id="d-overdue" style="display:none"></div>
+
+      <div id="d-2col" style="display:grid;grid-template-columns:3fr 2fr;gap:14px">
+        <div id="d-mit"></div>
+        <div class="card" style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:.8px">⚡ Quick Add</div>
+          <input type="text" class="fi" id="qa-input" placeholder="Task name..." onkeydown="if(event.key==='Enter')quickAdd()">
+          <div style="display:flex;gap:6px">
+            <select class="fsel" id="qa-pri" style="flex:1">
+              <option value="medium">Medium</option>
+              <option value="high">🔴 High</option>
+              <option value="low">Low</option>
+            </select>
+            <select class="fsel" id="qa-level" style="flex:1">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
           </div>
-          <div class="water-grid" id="w-grid" style="gap:4px"></div>
-          <div class="pb" style="height: 4px;"><div class="pbf b" id="w-pb" style="width: 0%;"></div></div>
+          <div style="display:flex;gap:6px">
+            <input type="time" class="fi" id="qa-time" style="flex:1">
+            <button class="btn btn-p" onclick="quickAdd()" style="flex:1;justify-content:center">+ Add</button>
+          </div>
         </div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div id="d-overdue" style="display:none"></div>
-        
-        <div class="sh"><div class="st">📋 <em>Today's To-Do List</em></div></div>
-        <div id="d-todo-list" class="todo-list-container">
-          <!-- Filtered actionable tasks here -->
+      <div class="card">
+        <div class="sh" style="margin-bottom:9px">
+          <div style="font-size:11px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:.8px">🕒 Today's Activity</div>
+          <button class="btn btn-g btn-sm" onclick="switchView('log')">View All →</button>
         </div>
-
-        <div id="d-mit"></div>
-        
-        <div class="card" style="border-left: 4px solid var(--accent); background: var(--s2);">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">💡</span>
-            <div style="font-size: 13px; color: var(--td); line-height: 1.5;" id="f-tip">
-              Break large tasks into 25-minute Pomodoro sessions to maintain high energy.
-            </div>
-          </div>
-        </div>
+        <div class="tl" id="d-tl"></div>
       </div>
     </div>
 
     <!-- ══ PROFILE VIEW ══ -->
     <div id="view-profile" class="view">
-      <div class="profile-card" style="display: block; padding: 20px; overflow: hidden; border: 1px solid var(--b1); background: var(--s1); border-radius: var(--rl);">
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;">
-          <div class="profile-avatar" id="p-avatar" onclick="toggleEditProfile()" title="Change Profile Photo" style="width: 100px; height: 100px; font-size: 36px; border: 4px solid var(--s1); background: var(--s2); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">👤</div>
-          <div style="flex: 1; min-width: 180px;">
-            <div class="profile-name" id="p-name" style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--text);">Loading...</div>
-            <div class="profile-email" id="p-email" style="font-size: 13px; color: var(--td);">user@personal.os</div>
-            <div id="p-level-tag" style="font-size: 11px; font-weight: 600; color: var(--accent); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px;">Level 1 Novice</div>
-          </div>
-          <button class="btn btn-p btn-sm" onclick="toggleEditProfile()">✎ Edit Profile</button>
+      <div class="st">👤 <em>User</em> Profile</div>
+      
+      <div class="profile-card">
+        <div class="profile-avatar-wrap" onclick="triggerAvatarUpload()" title="Click to change photo">
+          <div class="profile-avatar" id="p-avatar">👤</div>
+          <div class="profile-avatar-overlay">📷</div>
         </div>
-
-        <div class="profile-edit-form" id="p-edit-form" style="max-width: 100%; margin-bottom: 24px; border: 1px dashed var(--b2); background: var(--s1);">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div>
-              <div class="fl" style="margin-bottom:8px">Profile Image</div>
-              <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px">
-                <button class="btn btn-g btn-sm" onclick="document.getElementById('f-pupload').click()">📁 Use Local File</button>
-                <input type="file" id="f-pupload" style="display:none" accept="image/*" onchange="handleFile(event)">
-                <span style="font-size:10px; color:var(--tm)">Supports JPG, PNG</span>
-              </div>
-              <div class="avatar-presets" id="p-presets"></div>
-              <div class="fg" style="margin-top:10px">
-                <input type="text" class="fi" id="f-pavatar" placeholder="Or paste image URL..." oninput="previewAvatar(this.value)">
-              </div>
-              <div class="photo-adjust" id="photo-adj-box">
-                <div class="fl" style="margin-bottom:8px; font-size:10px; text-transform:uppercase; letter-spacing:1px">Framing Adjustment</div>
-                <div class="adjust-row"><label>Zoom</label><input type="range" id="f-pzoom" min="100" max="300" value="100" oninput="previewAvatar()"></div>
-                <div class="adjust-row"><label>X Pos</label><input type="range" id="f-px" min="0" max="100" value="50" oninput="previewAvatar()"></div>
-                <div class="adjust-row"><label>Y Pos</label><input type="range" id="f-py" min="0" max="100" value="50" oninput="previewAvatar()"></div>
-              </div>
-            </div>
-            <div class="fg">
-              <label class="fl">Display Name</label>
-              <input type="text" class="fi" id="f-pname" placeholder="Your Name">
-              <div style="margin-top:10px; font-size:11px; color:var(--tm); background:var(--s2); padding:10px; border-radius:var(--r); border:1px solid var(--b1);">
-                Click <strong>Save</strong> to sync your changes.
-              </div>
-            </div>
+        <input type="file" id="p-avatar-file" accept="image/*" style="display:none" onchange="handleAvatarChange(this)">
+        <div>
+          <div class="profile-name-wrap" id="p-name-display">
+            <div class="profile-name" id="p-name">Loading...</div>
+            <button class="profile-name-edit-btn" onclick="startEditName()" title="Edit name">✎ Edit</button>
           </div>
-          <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; border-top: 1px solid var(--b1); padding-top: 12px;">
-            <button class="btn btn-g btn-sm" onclick="toggleEditProfile()">Cancel</button>
-            <button class="btn btn-p btn-sm" onclick="saveProfile()">Save Changes</button>
+          <div class="profile-name-wrap" id="p-name-edit" style="display:none">
+            <input type="text" class="profile-name-input" id="p-name-input" maxlength="40">
+            <button class="btn btn-p btn-sm" onclick="saveProfileName()">Save</button>
+            <button class="btn btn-g btn-sm" onclick="cancelEditName()">✕</button>
           </div>
+          <div class="profile-email" id="p-email">user@email.com</div>
         </div>
-
-          <div class="profile-level-box" style="background: var(--s2); border-radius: var(--rl); padding: 16px; border: 1px solid var(--b1);">
-            <div class="profile-level-label">
-              <span id="p-level-tag">Level 1 Novice</span>
-              <span id="p-xp" style="font-family:var(--mono)">0 / 100 XP</span>
-            </div>
-            <div class="pb" style="height:10px"><div id="p-level-bar" class="pbf" style="width:0%"></div></div>
+        <div class="profile-level-box">
+          <div class="profile-level-label">
+            <span id="p-level-tag">Level 1 Novice</span>
+            <span class="profile-xp" id="p-xp">0 / 100 XP</span>
           </div>
+          <div class="pb"><div class="pbf" id="p-level-bar" style="width:0%"></div></div>
         </div>
       </div>
 
@@ -660,7 +634,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 
       <div style="margin-top:12px">
         <div class="sh"><div class="st">🏆 <em>Milestones</em></div></div>
-        <div id="p-milestones" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:10px">
+        <div id="p-milestones" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px">
           <!-- Milestone badges -->
         </div>
       </div>
@@ -758,11 +732,15 @@ canvas{width:100%!important;display:block;max-width:100%}
 
 <!-- ════ SHORTCUTS PANEL ════ -->
 <div id="shortcut-panel">
-  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">P</span></div><span class="kblbl">User Profile</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">1</span></div><span class="kblbl">Dashboard</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">2</span></div><span class="kblbl">Tasks</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">3</span></div><span class="kblbl">Goals</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">4</span></div><span class="kblbl">Analytics</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">5</span></div><span class="kblbl">Activity Log</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">6</span></div><span class="kblbl">Profile</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">N</span></div><span class="kblbl">New Task</span></div>
-  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">F</span></div><span class="kblbl">Open Focus</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">G</span></div><span class="kblbl">New Goal</span></div>
-  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">1-5</span></div><span class="kblbl">Switch View</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">F</span></div><span class="kblbl">Open Focus</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">/</span></div><span class="kblbl">Toggle Shortcuts</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">ESC</span></div><span class="kblbl">Close / Minimize</span></div>
   <div style="margin-top:10px;text-align:right"><button class="btn btn-g btn-sm" onclick="toggleShortcuts()">Close</button></div>
@@ -920,7 +898,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 <!-- ════════════════════════════════════════════════
      JAVASCRIPT — NEXUS DISCIPLINE OS v2.0
 ════════════════════════════════════════════════ -->
-<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 <script>
@@ -1003,9 +981,7 @@ const DB = {
     nx2_sessions: [],
     nx2_streak: {count:0,lastDate:null},
     nx2_meta: {lastPlanning:null,notifSeen:[]},
-    nx2_focus: null,
-    nx2_wellness: { water: 0, lastDate: null },
-    nx2_photo: { x: 50, y: 50, z: 100 }
+    nx2_focus: null
   },
   _saveTimer: null,
   
@@ -1037,14 +1013,10 @@ const DB = {
   saveMeta(v)    { this._save('nx2_meta',v); },
   getFocusState(){ return this._load('nx2_focus',null); },
   saveFocusState(v){ this._save('nx2_focus',v); },
-  getWellness()  { return this._load('nx2_wellness',{water:0,lastDate:null}); },
-  saveWellness(v){ this._save('nx2_wellness',v); },
-  getPhoto()     { return this._load('nx2_photo',{x:50,y:50,z:100}); },
-  savePhoto(v)   { this._save('nx2_photo',v); },
   
   initLocal() {
     if (!currentUserId) return;
-    ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus','nx2_wellness'].forEach(k => {
+    ['nx2_tasks','nx2_goals','nx2_logs','nx2_sessions','nx2_streak','nx2_meta','nx2_focus'].forEach(k => {
       try{ 
         const v = localStorage.getItem(`${currentUserId}_${k}`);
         let old_v = null;
@@ -1061,8 +1033,7 @@ const DB = {
   clearState() {
      this._state = {
        nx2_tasks: [], nx2_goals: [], nx2_logs: [], nx2_sessions: [],
-       nx2_streak: {count:0,lastDate:null}, nx2_meta: {lastPlanning:null,notifSeen:[]}, nx2_focus: null,
-       nx2_wellness: {water:0,lastDate:null}
+       nx2_streak: {count:0,lastDate:null}, nx2_meta: {lastPlanning:null,notifSeen:[]}, nx2_focus: null
      };
   }
 };
@@ -1564,33 +1535,6 @@ const TM = {
 };
 
 // ═══════════════════════════════════════════
-// WELLNESS MANAGER
-// ═══════════════════════════════════════════
-const WM = {
-  get() {
-    const w = DB.getWellness();
-    if(w.lastDate !== todayStr()) {
-      w.water = 0; w.lastDate = todayStr();
-      DB.saveWellness(w);
-    }
-    return w;
-  },
-  logWater(n) {
-    const w = this.get();
-    w.water = Math.min(12, w.water + 1);
-    DB.saveWellness(w);
-    renderDashboard();
-    toast('💧 Stay hydrated!','blue');
-  },
-  resetWater() {
-    const w = this.get();
-    w.water = 0;
-    DB.saveWellness(w);
-    renderDashboard();
-  }
-};
-
-// ═══════════════════════════════════════════
 // FOCUS MANAGER
 // ═══════════════════════════════════════════
 const FM = {
@@ -1817,6 +1761,8 @@ function openTaskModal(parentId, editId=null, defaultLevel=null) {
       document.getElementById('f-test').value = t.estimatedTime||'';
       document.getElementById('f-trec').value = t.recurrence||'none';
       document.getElementById('f-tgoal').value = t.goalId||'';
+      // Preserve the original parentId when editing
+      document.getElementById('f-tpid').value = t.parentId||'';
     }
   } else {
     document.getElementById('m-task-title').textContent = parentId ? 'Add Subtask' : 'Add Task';
@@ -1983,51 +1929,33 @@ function renderTimeline(logs, containerId) {
 function renderDashboard() {
   const stats = TM.stats();
   const streak = SM.get();
-  const wellness = WM.get();
-  const user = auth.currentUser;
+  const focus = FM.todayFocusTime();
+  const logs = DB.getLogs();
   
-  if(user) {
-    const name = user.displayName || user.email.split('@')[0];
-    const hrs = new Date().getHours();
-    const greet = hrs < 12 ? 'Good Morning' : hrs < 18 ? 'Good Afternoon' : 'Good Evening';
-    document.getElementById('d-greeting').textContent = `${greet}, ${name}! 👋`;
-  }
-
   // Update Streak in sidebar
   document.getElementById('sb-streak').textContent = streak.count;
 
-  // Render Wellness
-  document.getElementById('w-count').textContent = `${wellness.water}/8`;
-  document.getElementById('w-pb').style.width = Math.min(100, (wellness.water/8)*100) + '%';
-  const grid = document.getElementById('w-grid');
-  grid.innerHTML = '';
-  // Show 8 droplets
-  for(let i=1; i<=8; i++) {
-    const drop = document.createElement('div');
-    drop.className = 'water-drop' + (i <= wellness.water ? ' filled' : '');
-    drop.textContent = '💧';
-    drop.style.width = '20px'; drop.style.height = '20px'; drop.style.fontSize = '8px';
-    drop.onclick = () => WM.logWater();
-    grid.appendChild(drop);
-  }
+  // Mini stats strip
+  const msDone = document.getElementById('d-ms-done');
+  const msFocus = document.getElementById('d-ms-focus');
+  const msStreak = document.getElementById('d-ms-streak');
+  if(msDone) msDone.textContent = stats.completedToday;
+  if(msFocus) msFocus.textContent = fmtDur(focus) || '0m';
+  if(msStreak) msStreak.textContent = streak.count;
 
-  // Render Actionable To-Do List
-  const allTasks = DB.getTasks();
-  const actionable = allTasks.filter(t => 
-    t.status !== 'completed' && 
-    (t.dueDate === todayStr() || isOverdue(t.dueDate) || t.level === 'daily')
+  // Render Today's Tasks
+  const todayTasks = DB.getTasks().filter(t => 
+    !t.parentId && 
+    (t.dueDate === todayStr() || t.level === 'daily') && 
+    t.status !== 'completed'
   );
   
-  document.getElementById('d-task-count').textContent = actionable.length;
-  const todoList = document.getElementById('d-todo-list');
-  todoList.innerHTML = '';
-  
-  if(actionable.length) {
-    actionable.forEach(t => {
-      todoList.appendChild(mkTodoEl(t));
-    });
+  const todayList = document.getElementById('d-today-list');
+  if(todayTasks.length) {
+    todayList.innerHTML = '';
+    todayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, DB.getTasks(), null)));
   } else {
-    todoList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
+    todayList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
       <div class="empty" style="padding:10px">
         <div class="empty-icon" style="font-size:20px">✨</div>
         <div class="empty-text">No pending tasks for today. Great job!</div>
@@ -2053,56 +1981,29 @@ function renderDashboard() {
       </div>
     </div>`;
   } else {
-    ms.innerHTML=``;
+    ms.innerHTML=`<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:100px"><div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No active tasks. Add one to get started!</div></div></div>`;
   }
 
-  // Overdue alert (only show if many or critical)
-  const overdue = actionable.filter(t=>isOverdue(t.dueDate));
+  // Notification permission bar
+  const nb = document.getElementById('d-notif-bar');
+  if('Notification' in window && Notification.permission==='default') {
+    nb.style.display='flex';
+    nb.innerHTML=`<div class="notif-bar"><span class="notif-bar-text">🔔 Enable notifications for 30-min reminders & overdue alerts</span><button class="btn btn-p btn-sm" onclick="NM.requestPermission()">Enable</button></div>`;
+  } else nb.style.display='none';
+
+  // Overdue alert
+  const overdue = DB.getTasks().filter(t=>isOverdue(t.dueDate)&&t.status!=='completed');
   const da = document.getElementById('d-overdue');
-  if(overdue.length > 2) {
+  if(overdue.length) {
     da.style.display='block';
-    da.innerHTML=`<div class="overdue-alert" style="margin-bottom:12px">
-      <h4>🔴 ${overdue.length} Overdue Tasks Need Attention</h4>
+    da.innerHTML=`<div class="overdue-alert">
+      <h4>🔴 ${overdue.length} Overdue Task${overdue.length>1?'s':''}</h4>
+      ${overdue.slice(0,5).map(t=>`<div class="overdue-item">• ${esc(t.title)} <span style="color:var(--red);font-size:10px">(${t.dueDate})</span></div>`).join('')}
+      ${overdue.length>5?`<div style="font-size:11px;color:var(--tm);margin-top:4px">+${overdue.length-5} more...</div>`:''}
     </div>`;
   } else da.style.display='none';
 
-  // Tip
-  const fTips = [
-    "Break large tasks into 25-minute Pomodoro sessions.",
-    "Turn off notifications for deep focus work.",
-    "A clear desk leads to a clear mind.",
-    "Single-tasking is more efficient than multi-tasking.",
-    "The hardest part is starting. Commit to 5 minutes."
-  ];
-  document.getElementById('f-tip').textContent = fTips[Math.floor(Math.random()*fTips.length)];
-}
-
-function mkTodoEl(t) {
-  const el = document.createElement('div');
-  el.className = 'todo-item' + (t.status==='completed'?' done':'');
-  el.onclick = () => {
-    TM.toggle(t.id);
-    renderDashboard();
-  };
-  
-  const prioColors = { high: 'var(--red)', medium: 'var(--yellow)', low: 'var(--tm)' };
-  const prioColor = prioColors[t.priority] || 'var(--tm)';
-
-  el.innerHTML = `
-    <div class="todo-check">${t.status==='completed'?'✓':''}</div>
-    <div class="todo-content">
-      <div class="todo-title">${esc(t.title)}</div>
-      <div class="todo-meta">
-        <span style="color:${prioColor}">● ${t.priority}</span>
-        ${t.dueDate ? `<span>📅 ${t.dueDate}</span>` : ''}
-        ${t.dueTime ? `<span>⏰ ${t.dueTime}</span>` : ''}
-        ${isOverdue(t.dueDate) ? '<span class="badge bh">Overdue</span>' : ''}
-        <span class="badge b${t.level}">${t.level}</span>
-      </div>
-    </div>
-    <button class="btn btn-g btn-xs" onclick="event.stopPropagation(); FM.startTask('${t.id}')">Focus</button>
-  `;
-  return el;
+  renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
 }
 
 // ═══════════════════════════════════════════
@@ -2112,13 +2013,27 @@ function renderProfile() {
   const user = auth.currentUser;
   if(!user) return;
 
-  document.getElementById('p-name').textContent = user.displayName || user.email.split('@')[0];
+  // Name: prefer locally saved custom name
+  const meta = DB.getMeta();
+  const displayName = meta.customName || user.displayName || user.email.split('@')[0];
+  document.getElementById('p-name').textContent = displayName;
   document.getElementById('p-email').textContent = user.email;
-  if(user.photoURL) {
-    const av = document.getElementById('p-avatar');
+  document.getElementById('p-name-input').value = displayName;
+
+  // Avatar: prefer custom base64 → Firebase photoURL → emoji
+  const av = document.getElementById('p-avatar');
+  const customAvatar = meta.avatarBase64;
+  if(customAvatar) {
+    av.style.backgroundImage = `url(${customAvatar})`;
+    av.style.backgroundSize = 'cover';
+    av.textContent = '';
+  } else if(user.photoURL) {
     av.style.backgroundImage = `url(${user.photoURL})`;
     av.style.backgroundSize = 'cover';
     av.textContent = '';
+  } else {
+    av.style.backgroundImage = '';
+    av.textContent = '👤';
   }
 
   const tasks = DB.getTasks();
@@ -2493,121 +2408,89 @@ function _rRect(ctx,x,y,w,h,r){
   ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
 }
 
-function toggleEditProfile() {
-  const form = document.getElementById('p-edit-form');
-  const user = auth.currentUser;
-  if(user && !form.classList.contains('on')) {
-    document.getElementById('f-pname').value = user.displayName || '';
-    document.getElementById('f-pavatar').value = user.photoURL || '';
-    const cfg = DB.getPhoto();
-    document.getElementById('f-px').value = cfg.x;
-    document.getElementById('f-py').value = cfg.y;
-    document.getElementById('f-pzoom').value = cfg.z;
-    renderAvatarPresets();
-  }
-  form.classList.toggle('on');
+// ═══════════════════════════════════════════
+// PROFILE EDIT — AVATAR & NAME
+// ═══════════════════════════════════════════
+function triggerAvatarUpload() {
+  document.getElementById('p-avatar-file').click();
 }
 
-function handleFile(e) {
-  const file = e.target.files[0];
+function handleAvatarChange(input) {
+  const file = input.files[0];
   if(!file) return;
-  if(!file.type.startsWith('image/')) { toast('Please select an image file','e'); return; }
-  if(file.size > 2 * 1024 * 1024) { toast('Image is too large (max 2MB)','e'); return; }
+  if(file.size > 3 * 1024 * 1024) { toast('⚠️ Image too large — max 3 MB','e'); return; }
 
   const reader = new FileReader();
-  reader.onload = (ev) => {
-    pickAvatar(ev.target.result);
-    toast('Image loaded! Click Save to confirm.','s');
+  reader.onload = (e) => {
+    // Resize to 200×200 before storing
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const SIZE = 200;
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      // Crop to square from center
+      const minSide = Math.min(img.width, img.height);
+      const sx = (img.width - minSide) / 2;
+      const sy = (img.height - minSide) / 2;
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, SIZE, SIZE);
+      const b64 = canvas.toDataURL('image/jpeg', 0.85);
+      const meta = DB.getMeta();
+      meta.avatarBase64 = b64;
+      DB.saveMeta(meta);
+      // Update avatar immediately
+      const av = document.getElementById('p-avatar');
+      av.style.backgroundImage = `url(${b64})`;
+      av.style.backgroundSize = 'cover';
+      av.textContent = '';
+      // Update sidebar avatar too
+      const sbAv = document.getElementById('sb-avatar-img');
+      sbAv.style.backgroundImage = `url(${b64})`;
+      sbAv.style.backgroundSize = 'cover';
+      sbAv.textContent = '';
+      toast('✅ Profile photo updated!','s');
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+  input.value = ''; // reset so same file can be re-selected
 }
 
-const AVATAR_SEEDS = ['Felix', 'Aneka', 'Mia', 'Buddy', 'Max', 'Luna', 'Oscar', 'Buster', 'Coco', 'Ruby'];
-function renderAvatarPresets() {
-  const container = document.getElementById('p-presets');
-  if(!container) return;
-  const current = document.getElementById('f-pavatar').value;
-  
-  container.innerHTML = AVATAR_SEEDS.map(seed => {
-    const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-    const active = current === url ? 'active' : '';
-    return `<div class="avatar-preset ${active}" onclick="pickAvatar('${url}')" style="background-image:url(${url}); background-size:cover;"></div>`;
-  }).join('');
+function startEditName() {
+  document.getElementById('p-name-display').style.display = 'none';
+  document.getElementById('p-name-edit').style.display = 'flex';
+  const input = document.getElementById('p-name-input');
+  input.focus();
+  input.select();
 }
 
-function pickAvatar(url) {
-  document.getElementById('f-pavatar').value = url;
-  previewAvatar(url);
-  renderAvatarPresets();
+function cancelEditName() {
+  document.getElementById('p-name-display').style.display = 'flex';
+  document.getElementById('p-name-edit').style.display = 'none';
 }
 
-function previewAvatar(url) {
-  const pAv = document.getElementById('p-avatar');
-  const sbAv = document.getElementById('sb-avatar-img');
-  const photoUrl = url || document.getElementById('f-pavatar').value;
-  const x = document.getElementById('f-px').value;
-  const y = document.getElementById('f-py').value;
-  const z = document.getElementById('f-pzoom').value;
-  
-  const apply = (el) => {
-    if(!el) return;
-    if(photoUrl && (photoUrl.startsWith('http') || photoUrl.startsWith('data:image'))) {
-      el.style.backgroundImage = `url(${photoUrl})`;
-      el.style.backgroundSize = `${z}%`;
-      el.style.backgroundPosition = `${x}% ${y}%`;
-      el.textContent = '';
-    } else {
-      el.style.backgroundImage = 'none';
-      el.textContent = '👤';
-    }
-  };
-  apply(pAv);
-  apply(sbAv);
+function saveProfileName() {
+  const val = document.getElementById('p-name-input').value.trim();
+  if(!val) { toast('Name cannot be empty','e'); return; }
+  const meta = DB.getMeta();
+  meta.customName = val;
+  DB.saveMeta(meta);
+  document.getElementById('p-name').textContent = val;
+  document.getElementById('sb-username').textContent = val;
+  cancelEditName();
+  toast('✅ Name updated!','s');
 }
 
-async function saveProfile() {
-  const name = document.getElementById('f-pname').value.trim();
-  const avatar = document.getElementById('f-pavatar').value.trim();
-  const user = auth.currentUser;
-  if(!user) return;
-  
-  const btn = document.querySelector('#p-edit-form .btn-p');
-  if(!btn) return;
-  const oldText = btn.textContent;
-  btn.textContent = 'Saving...';
-  btn.disabled = true;
-
-  try {
-    await user.updateProfile({ displayName: name, photoURL: avatar });
-    
-    const x=parseInt(document.getElementById('f-px').value),
-          y=parseInt(document.getElementById('f-py').value),
-          z=parseInt(document.getElementById('f-pzoom').value);
-    
-    DB.savePhoto({x,y,z});
-
-    if(firestore) {
-      await firestore.collection('users').doc(user.uid).set({
-        displayName: name,
-        photoURL: avatar,
-        photoX: x, photoY: y, photoZoom: z,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    }
-
-    toast('Profile updated successfully!','s');
-    toggleEditProfile();
-    refreshAll();
-  } catch(e) {
-    console.error('Profile update error:', e);
-    toast('Error updating profile','e');
-  } finally {
-    btn.textContent = oldText;
-    btn.disabled = false;
+// Allow Enter/Escape in name input
+document.addEventListener('DOMContentLoaded', () => {
+  const ni = document.getElementById('p-name-input');
+  if(ni) {
+    ni.addEventListener('keydown', e => {
+      if(e.key === 'Enter') saveProfileName();
+      if(e.key === 'Escape') cancelEditName();
+    });
   }
-}
-
-function resetWater() { WM.resetWater(); }
+});
 
 // ═══════════════════════════════════════════
 // LOG VIEW
@@ -2658,30 +2541,25 @@ function refreshAll() {
   // Update Sidebar Profile Header
   const user = auth.currentUser;
   if(user) {
-    document.getElementById('sb-username').textContent = user.displayName || user.email.split('@')[0];
+    const meta = DB.getMeta();
+    const displayName = meta.customName || user.displayName || user.email.split('@')[0];
+    document.getElementById('sb-username').textContent = displayName;
     const totalCompleted = DB.getTasks().filter(t=>t.status==='completed').length;
     const totalFocus = DB.getSessions().reduce((s,x)=>s+(x.duration||0),0);
     const totalXP = (totalCompleted * 10) + Math.floor(totalFocus / 60);
     const level = Math.floor(totalXP / 100) + 1;
     const levelTags = ['Novice', 'Apprentice', 'Practitioner', 'Ace', 'Master', 'Grandmaster', 'Legend'];
-    const levelTag = `Level ${level} ${levelTags[Math.min(level-1, levelTags.length-1)]}`;
     document.getElementById('sb-userlevel').textContent = levelTags[Math.min(level-1, levelTags.length-1)];
-    const pLevel = document.getElementById('p-level-tag');
-    if(pLevel) pLevel.textContent = levelTag;
     
-    const photo = user.photoURL;
-    const cfg = DB.getPhoto();
-    if(photo) {
-      const sbAv = document.getElementById('sb-avatar-img');
-      const pAv = document.getElementById('p-avatar');
-      [sbAv, pAv].forEach(el => {
-        if(el) { 
-          el.style.backgroundImage = `url(${photo})`; 
-          el.style.backgroundSize = `${cfg.z}%`; 
-          el.style.backgroundPosition = `${cfg.x}% ${cfg.y}%`; 
-          el.textContent = ''; 
-        }
-      });
+    const sbAv = document.getElementById('sb-avatar-img');
+    if(meta.avatarBase64) {
+      sbAv.style.backgroundImage = `url(${meta.avatarBase64})`;
+      sbAv.style.backgroundSize = 'cover';
+      sbAv.textContent = '';
+    } else if(user.photoURL) {
+      sbAv.style.backgroundImage = `url(${user.photoURL})`;
+      sbAv.style.backgroundSize = 'cover';
+      sbAv.textContent = '';
     }
   }
 }
@@ -2745,6 +2623,7 @@ function initKeyboard() {
       else if(e.key==='3') { e.preventDefault(); switchView('goals'); }
       else if(e.key==='4') { e.preventDefault(); switchView('analytics'); }
       else if(e.key==='5') { e.preventDefault(); switchView('log'); }
+      else if(e.key==='6') { e.preventDefault(); switchView('profile'); }
     }
   });
 }
@@ -2780,14 +2659,4 @@ document.addEventListener('DOMContentLoaded', () => {
   TM.handleRecurring();
   FM.load();
   NM.init();
-  renderDashboard();
-  checkPlanning();
-
-  // Resize — redraw charts if analytics visible
-  window.addEventListener('resize', ()=>{
-    if(_curView==='analytics') setTimeout(()=>renderAnalytics(),100);
-  });
-});
-</script>
-</body>
-</html>
+  renderDashboar
