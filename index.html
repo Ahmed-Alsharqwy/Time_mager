@@ -2709,4 +2709,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sidebar date
-  document.getEle
+  document.getElementById('sb-date').textContent = new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+
+  // Keyboard
+  initKeyboard();
+
+  // Boot
+  TM.handleRecurring();
+  FM.load();
+  NM.init();
+  renderDashboard();
+  checkPlanning();
+
+  // Resize — redraw charts if analytics visible
+  window.addEventListener('resize', ()=>{
+    if(_curView==='analytics') setTimeout(()=>renderAnalytics(),100);
+  });
+});
+</script>
+</body>
+</html>
