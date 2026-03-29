@@ -368,6 +368,35 @@ canvas{width:100%!important;display:block;max-width:100%}
 .p-stat-val { font-size: 22px; font-weight: 800; font-family: var(--mono); color: var(--text); }
 .p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
 
+/* ── DAILY HABITS WIDGET ─────────────────── */
+.habits-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 13px; }
+.hab-section-lbl { font-size: 9px; font-weight: 700; color: var(--tm); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.prayers-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.prayer-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 3px; border-radius: var(--r); border: 1px solid var(--b1); background: var(--s2); cursor: pointer; transition: all var(--ease); user-select: none; }
+.prayer-btn:hover { border-color: var(--b2); }
+.prayer-btn.done { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.4); }
+.prayer-icon { font-size: 13px; line-height: 1; }
+.prayer-name { font-size: 8px; font-weight: 700; color: var(--td); letter-spacing: .2px; white-space: nowrap; }
+.prayer-check { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--b2); background: none; display: flex; align-items: center; justify-content: center; font-size: 8px; transition: all var(--ease); }
+.prayer-btn.done .prayer-check { background: var(--green); border-color: var(--green); color: #000; }
+.prayers-bar-row { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.prayers-count { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--green); white-space: nowrap; }
+.water-glasses { display: flex; gap: 4px; flex-wrap: wrap; }
+.water-glass { width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--b1); background: var(--s2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all var(--ease); opacity: .3; }
+.water-glass.filled { background: rgba(96,165,250,.18); border-color: rgba(96,165,250,.5); opacity: 1; }
+.water-glass:hover { opacity: 1; border-color: var(--blue); transform: scale(1.1); }
+.water-status { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--blue); margin-top: 5px; }
+.dhikr-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.dhikr-row:last-child { margin-bottom: 0; }
+.dhikr-tap { flex: 1; background: var(--s2); border: 1px solid var(--b1); border-radius: var(--r); padding: 8px 10px; cursor: pointer; transition: all var(--ease); display: flex; align-items: center; justify-content: space-between; user-select: none; -webkit-tap-highlight-color: transparent; }
+.dhikr-tap:hover { border-color: var(--b2); }
+.dhikr-tap:active { transform: scale(.97); background: var(--s3); }
+.dhikr-tap.done { background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.35); }
+.dhikr-text { font-size: 12px; font-weight: 600; color: var(--text); }
+.dhikr-num { font-size: 14px; font-weight: 700; font-family: var(--mono); color: var(--accent); min-width: 28px; text-align: right; }
+.dhikr-reset-all { background: none; border: none; color: var(--tm); cursor: pointer; font-size: 10px; padding: 3px 7px; border-radius: var(--r); transition: all var(--ease); float: right; }
+.dhikr-reset-all:hover { background: var(--s3); color: var(--text); }
+
 /* ── DASHBOARD MINI STATS ────────────────── */
 .d-mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .d-ms { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 10px 12px; display: flex; align-items: center; gap: 9px; min-width: 0; }
@@ -522,7 +551,6 @@ canvas{width:100%!important;display:block;max-width:100%}
       <div class="nav-item" data-view="tasks"><span class="nav-icon">✦</span>Tasks</div>
       <div class="nav-item" data-view="goals"><span class="nav-icon">◎</span>Goals</div>
       <div class="nav-item" data-view="analytics"><span class="nav-icon">▦</span>Analytics</div>
-      <div class="nav-item" data-view="log"><span class="nav-icon">◈</span>Activity Log</div>
     </div>
     <div class="sb-footer">
       <div class="streak-box">
@@ -578,34 +606,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 
       <div id="d-2col" style="display:grid;grid-template-columns:3fr 2fr;gap:14px">
         <div id="d-mit"></div>
-        <div class="card" style="display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:11px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:.8px">⚡ Quick Add</div>
-          <input type="text" class="fi" id="qa-input" placeholder="Task name..." onkeydown="if(event.key==='Enter')quickAdd()">
-          <div style="display:flex;gap:6px">
-            <select class="fsel" id="qa-pri" style="flex:1">
-              <option value="medium">Medium</option>
-              <option value="high">🔴 High</option>
-              <option value="low">Low</option>
-            </select>
-            <select class="fsel" id="qa-level" style="flex:1">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:6px">
-            <input type="time" class="fi" id="qa-time" style="flex:1">
-            <button class="btn btn-p" onclick="quickAdd()" style="flex:1;justify-content:center">+ Add</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sh" style="margin-bottom:9px">
-          <div style="font-size:11px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:.8px">🕒 Today's Activity</div>
-          <button class="btn btn-g btn-sm" onclick="switchView('log')">View All →</button>
-        </div>
-        <div class="tl" id="d-tl"></div>
+        <div id="d-habits"></div>
       </div>
     </div>
 
@@ -717,18 +718,6 @@ canvas{width:100%!important;display:block;max-width:100%}
       </div>
     </div>
 
-    <!-- ══ LOG VIEW ══ -->
-    <div id="view-log" class="view">
-      <div class="sh">
-        <div class="st">◈ <em>Activity</em> Log</div>
-        <div style="display:flex;gap:6px">
-          <button class="fbtn active" data-lf="all" onclick="setLogFilter(this,'all')">All</button>
-          <button class="fbtn" data-lf="today" onclick="setLogFilter(this,'today')">Today</button>
-          <button class="fbtn" data-lf="week" onclick="setLogFilter(this,'week')">Week</button>
-        </div>
-      </div>
-      <div class="tl" id="log-tl"></div>
-    </div>
 
   </div><!-- /main -->
 </div><!-- /app -->
@@ -756,8 +745,7 @@ canvas{width:100%!important;display:block;max-width:100%}
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">2</span></div><span class="kblbl">Tasks</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">3</span></div><span class="kblbl">Goals</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">4</span></div><span class="kblbl">Analytics</span></div>
-  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">5</span></div><span class="kblbl">Activity Log</span></div>
-  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">6</span></div><span class="kblbl">Profile</span></div>
+  <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">5</span></div><span class="kblbl">Profile</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">N</span></div><span class="kblbl">New Task</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">G</span></div><span class="kblbl">New Goal</span></div>
   <div class="kbrow"><div class="kbkey"><span class="key">Ctrl</span><span class="key">F</span></div><span class="kblbl">Open Focus</span></div>
@@ -1497,7 +1485,13 @@ const TM = {
 
   roots(filter='', search='') {
     let tasks = DB.getTasks().filter(t=>!t.parentId);
-    return tasks.sort((a,b)=>a.order-b.order);
+    return tasks.sort((a,b)=>{
+      const da = a.dueDate||'9999-99-99', db = b.dueDate||'9999-99-99';
+      if(da!==db) return da<db?-1:1;
+      const ta = a.dueTime||'99:99', tb = b.dueTime||'99:99';
+      if(ta!==tb) return ta<tb?-1:1;
+      return (a.order||0)-(b.order||0);
+    });
   },
 
   children(pid) { return DB.getTasks().filter(t=>t.parentId===pid).sort((a,b)=>a.order-b.order); },
@@ -1983,6 +1977,135 @@ function renderTimeline(logs, containerId) {
 }
 
 // ═══════════════════════════════════════════
+// DAILY HABITS ENGINE
+// ═══════════════════════════════════════════
+const HABITS = {
+  PRAYERS: [
+    {id:'fajr',   name:'الفجر',   icon:'🌙'},
+    {id:'dhuhr',  name:'الظهر',   icon:'☀️'},
+    {id:'asr',    name:'العصر',   icon:'🌤'},
+    {id:'maghrib',name:'المغرب',  icon:'🌅'},
+    {id:'isha',   name:'العشاء',  icon:'🌙'},
+  ],
+  DHIKR: [
+    {id:'sub',  text:'سبحان الله',    target:33},
+    {id:'hamd', text:'الحمد لله',     target:33},
+    {id:'akbar',text:'الله أكبر',     target:33},
+  ],
+  WATER_TARGET: 8,
+
+  _getState() {
+    const meta = DB.getMeta();
+    const today = todayStr();
+    if(!meta.habits || meta.habits.date !== today) {
+      meta.habits = {
+        date: today,
+        prayers: {fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false},
+        water: 0,
+        dhikr: {sub:0, hamd:0, akbar:0},
+      };
+      DB.saveMeta(meta);
+    }
+    return meta.habits;
+  },
+
+  _save(state) {
+    const meta = DB.getMeta();
+    meta.habits = state;
+    DB.saveMeta(meta);
+  },
+
+  togglePrayer(id) {
+    const s = this._getState();
+    s.prayers[id] = !s.prayers[id];
+    this._save(s);
+    renderHabits();
+    const done = Object.values(s.prayers).filter(Boolean).length;
+    if(done===5) toast('🤲 ما شاء الله! أتممت الصلوات الخمس 🌙','s',4000);
+  },
+
+  tapDhikr(id) {
+    const s = this._getState();
+    const t = this.DHIKR.find(d=>d.id===id);
+    if(!t) return;
+    if(s.dhikr[id] >= t.target) { s.dhikr[id]=0; } // reset on overflow
+    else { s.dhikr[id]++; }
+    this._save(s);
+    renderHabits();
+    const allDone = this.DHIKR.every(d=>s.dhikr[d.id]>=d.target);
+    if(allDone) toast('📿 ما شاء الله! أتممت الأذكار ✨','s',4000);
+  },
+
+  setWater(n) {
+    const s = this._getState();
+    s.water = Math.max(0, Math.min(this.WATER_TARGET, n));
+    this._save(s);
+    renderHabits();
+    if(s.water===this.WATER_TARGET) toast('💧 ما شاء الله! شربت كمية الماء اليومية 🎉','s',4000);
+  },
+};
+
+function renderHabits() {
+  const el = document.getElementById('d-habits');
+  if(!el) return;
+  const s = HABITS._getState();
+
+  // Prayers
+  const prayerDone = Object.values(s.prayers).filter(Boolean).length;
+  const prayerPct = Math.round((prayerDone/5)*100);
+  const prayersHTML = HABITS.PRAYERS.map(p=>`
+    <div class="prayer-btn ${s.prayers[p.id]?'done':''}" onclick="HABITS.togglePrayer('${p.id}')" title="${p.name}">
+      <div class="prayer-icon">${p.icon}</div>
+      <div class="prayer-name">${p.name}</div>
+      <div class="prayer-check">${s.prayers[p.id]?'✓':''}</div>
+    </div>`).join('');
+
+  // Water
+  const waterHTML = Array.from({length:HABITS.WATER_TARGET},(_,i)=>`
+    <div class="water-glass ${i<s.water?'filled':''}"
+      onclick="HABITS.setWater(${i<s.water?i:i+1})" title="${i+1} glasses">💧</div>`).join('');
+
+  // Dhikr
+  const dhikrHTML = HABITS.DHIKR.map(d=>{
+    const count = s.dhikr[d.id]||0;
+    const done = count>=d.target;
+    return `<div class="dhikr-row">
+      <div class="dhikr-tap ${done?'done':''}" onclick="HABITS.tapDhikr('${d.id}')" title="اضغط للعد">
+        <span class="dhikr-text">${d.text}</span>
+        <span class="dhikr-num">${count}<span style="font-size:9px;color:var(--tm);font-weight:400">/${d.target}</span></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="habits-card">
+    <div>
+      <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>🕌 الصلوات</span>
+        <span style="font-size:10px;font-family:var(--mono);color:${prayerDone===5?'var(--green)':'var(--accent)'};">${prayerDone}/5</span>
+      </div>
+      <div class="prayers-grid">${prayersHTML}</div>
+      <div class="pb" style="margin-top:7px;height:3px"><div class="pbf g" style="width:${prayerPct}%"></div></div>
+    </div>
+
+    <div>
+      <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>💧 الماء</span>
+        <span style="font-size:10px;font-family:var(--mono);color:var(--blue);">${s.water}/${HABITS.WATER_TARGET} أكواب</span>
+      </div>
+      <div class="water-glasses">${waterHTML}</div>
+    </div>
+
+    <div>
+      <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📿 الأذكار</span>
+        <button class="dhikr-reset-all" onclick="event.stopPropagation();const s=HABITS._getState();s.dhikr={sub:0,hamd:0,akbar:0};HABITS._save(s);renderHabits();">إعادة</button>
+      </div>
+      ${dhikrHTML}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
 // RENDER DASHBOARD
 // ═══════════════════════════════════════════
 function renderDashboard() {
@@ -2002,17 +2125,34 @@ function renderDashboard() {
   if(msFocus) msFocus.textContent = fmtDur(focus) || '0m';
   if(msStreak) msStreak.textContent = streak.count;
 
-  // Render Today's Tasks
-  const todayTasks = DB.getTasks().filter(t => 
-    !t.parentId && 
-    (t.dueDate === todayStr() || t.level === 'daily') && 
+  // Render Today's Tasks — sorted by due date/time, max 5
+  const allTasks = DB.getTasks();
+  const todayTasks = allTasks.filter(t =>
+    !t.parentId &&
+    (t.dueDate === todayStr() || t.level === 'daily') &&
     t.status !== 'completed'
-  );
-  
+  ).sort((a, b) => {
+    // Sort by dueDate asc, then dueTime asc, then createdAt asc
+    const da = a.dueDate || '9999-99-99', db = b.dueDate || '9999-99-99';
+    if(da !== db) return da < db ? -1 : 1;
+    const ta = a.dueTime || '99:99', tb = b.dueTime || '99:99';
+    if(ta !== tb) return ta < tb ? -1 : 1;
+    return (a.createdAt||0) - (b.createdAt||0);
+  });
+
   const todayList = document.getElementById('d-today-list');
-  if(todayTasks.length) {
+  const displayTasks = todayTasks.slice(0, 5);
+  const remaining = todayTasks.length - displayTasks.length;
+  if(displayTasks.length) {
     todayList.innerHTML = '';
-    todayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, DB.getTasks(), null)));
+    displayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, allTasks, null)));
+    if(remaining > 0) {
+      const moreEl = document.createElement('div');
+      moreEl.style.cssText = 'text-align:center;padding:8px;font-size:12px;color:var(--tm);cursor:pointer;border:1px dashed var(--b1);border-radius:var(--r);margin-top:4px';
+      moreEl.innerHTML = `+${remaining} more task${remaining>1?'s':''} — <span style="color:var(--accent)">View all →</span>`;
+      moreEl.onclick = () => switchView('tasks');
+      todayList.appendChild(moreEl);
+    }
   } else {
     todayList.innerHTML = `<div class="card" style="display:flex;align-items:center;justify-content:center;min-height:80px;border-style:dashed;background:transparent">
       <div class="empty" style="padding:10px">
@@ -2021,6 +2161,9 @@ function renderDashboard() {
       </div>
     </div>`;
   }
+
+  // Habits widget
+  renderHabits();
 
   const mit = TM.MIT();
   const ms = document.getElementById('d-mit');
@@ -2061,8 +2204,6 @@ function renderDashboard() {
       ${overdue.length>5?`<div style="font-size:11px;color:var(--tm);margin-top:4px">+${overdue.length-5} more...</div>`:''}
     </div>`;
   } else da.style.display='none';
-
-  renderTimeline(LM.getFiltered('today').slice(0,10), 'd-tl');
 }
 
 // ═══════════════════════════════════════════
@@ -2587,7 +2728,6 @@ function renderView(name) {
   else if(name==='tasks')     renderTasks();
   else if(name==='goals')     renderGoals();
   else if(name==='analytics') renderAnalytics();
-  else if(name==='log')       renderLog(_curLogFilter);
 }
 
 function refreshAll() {
@@ -2681,8 +2821,7 @@ function initKeyboard() {
       else if(e.key==='2') { e.preventDefault(); switchView('tasks'); }
       else if(e.key==='3') { e.preventDefault(); switchView('goals'); }
       else if(e.key==='4') { e.preventDefault(); switchView('analytics'); }
-      else if(e.key==='5') { e.preventDefault(); switchView('log'); }
-      else if(e.key==='6') { e.preventDefault(); switchView('profile'); }
+      else if(e.key==='5') { e.preventDefault(); switchView('profile'); }
     }
   });
 }
