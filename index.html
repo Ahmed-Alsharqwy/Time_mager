@@ -434,44 +434,64 @@ canvas{width:100%!important;display:block;max-width:100%}
 }
 .login-box {
   background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl);
-  padding: 40px; width: 100%; max-width: 400px;
-  display: flex; flex-direction: column; gap: 20px;
+  padding: 36px 32px; width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
 }
-.login-logo { font-size: 32px; font-weight: 800; letter-spacing: 4px; color: var(--accent); font-family: var(--mono); }
-.login-desc { color: var(--td); font-size: 14px; line-height: 1.5; }
-.btn-google { background: #fff; color: #000; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: var(--r); font-weight: 600; cursor: pointer; transition: all var(--ease); border: none; font-size: 15px; }
-.btn-google:hover { background: #f1f5f9; }
-.btn-google img { width: 20px; height: 20px; }
+.login-logo { font-size: 30px; font-weight: 800; letter-spacing: 4px; color: var(--accent); font-family: var(--mono); margin-bottom: 2px; }
+.login-sub { font-size: 11px; color: var(--tm); text-transform: uppercase; letter-spacing: 1.5px; }
+.login-desc { color: var(--td); font-size: 13px; line-height: 1.6; }
+.login-divider { display: flex; align-items: center; gap: 10px; }
+.login-divider span { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+.btn-google { background: #fff; color: #222; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 16px; border-radius: var(--r); font-weight: 600; cursor: pointer; transition: all var(--ease); border: none; font-size: 14px; width: 100%; }
+.btn-google:hover { background: #f1f5f9; transform: translateY(-1px); }
+.btn-google:active { transform: translateY(0); }
+.auth-error-box { background: var(--red-bg); border: 1px solid rgba(248,113,113,.3); border-radius: var(--r); padding: 10px 12px; font-size: 12px; color: var(--red); text-align: left; display: none; line-height: 1.5; }
+.auth-hint { font-size: 11px; color: var(--tm); background: var(--s2); border-radius: var(--r); padding: 9px 12px; text-align: left; line-height: 1.6; border: 1px solid var(--b1); }
+.auth-hint strong { color: var(--accent); }
+.login-btn-row { display: flex; gap: 8px; }
+.login-btn-row .btn { flex: 1; justify-content: center; padding: 10px; font-size: 14px; }
+.btn-loading { opacity: .6; pointer-events: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 </style>
 </head>
 <body>
 
 <!-- ════ LOGIN OVERLAY ════ -->
 <div id="login-overlay">
-  <div class="login-box" style="gap: 12px; max-width: 360px;">
-    <div class="login-logo">NEXUS</div>
-    <div class="login-desc" style="margin-bottom: 8px;">Sign in to sync your tasks and keep your goals private across devices.</div>
-    
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <input type="email" id="auth-email" class="fi" placeholder="Email Address" required>
-      <input type="password" id="auth-pass" class="fi" placeholder="Password" required>
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <button class="btn btn-p" style="flex: 1; justify-content: center;" onclick="loginWithEmail()">Sign In</button>
-        <button class="btn btn-s" style="flex: 1; justify-content: center;" onclick="signupWithEmail()">Sign Up</button>
-      </div>
-    </div>
-    
-    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0;">
-      <div style="height: 1px; background: var(--b1); flex: 1;"></div>
-      <div style="font-size: 11px; color: var(--td); text-transform: uppercase;">Or</div>
-      <div style="height: 1px; background: var(--b1); flex: 1;"></div>
+  <div class="login-box">
+    <div>
+      <div class="login-logo">NEXUS</div>
+      <div class="login-sub">Discipline OS</div>
     </div>
 
+    <div id="auth-error" class="auth-error-box"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input type="email" id="auth-email" class="fi" placeholder="Email Address"
+        onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()">
+      <input type="password" id="auth-pass" class="fi" placeholder="Password (min 6 chars)"
+        onkeydown="if(event.key==='Enter')loginWithEmail()">
+    </div>
+
+    <div class="login-btn-row">
+      <button class="btn btn-p" id="btn-signin" onclick="loginWithEmail()">Sign In</button>
+      <button class="btn btn-s" id="btn-signup" onclick="signupWithEmail()">Sign Up</button>
+    </div>
+
+    <div class="auth-hint">
+      <strong>New here?</strong> Click <strong>Sign Up</strong> to create your account first,
+      then <strong>Sign In</strong> next time. Password must be at least 6 characters.
+    </div>
+
+    <div class="login-divider"><span>or continue with</span></div>
+
     <button class="btn-google" onclick="loginWithGoogle()">
-      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       Sign in with Google
     </button>
-    <div id="auth-error" style="color: var(--red); font-size: 11px; margin-top: 4px; display: none;"></div>
   </div>
 </div>
 
@@ -609,7 +629,7 @@ canvas{width:100%!important;display:block;max-width:100%}
             <button class="btn btn-p btn-sm" onclick="saveProfileName()">Save</button>
             <button class="btn btn-g btn-sm" onclick="cancelEditName()">✕</button>
           </div>
-          <div class="profile-email" id="p-email">user@email.com</div>
+          <div class="profile-email" id="p-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe8b8d9b8cbe9b939f9792d09d9193">[email&#160;protected]</a></div>
         </div>
         <div class="profile-level-box">
           <div class="profile-level-label">
@@ -898,7 +918,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 <!-- ════════════════════════════════════════════════
      JAVASCRIPT — NEXUS DISCIPLINE OS v2.0
 ════════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 <script>
@@ -1085,34 +1105,73 @@ auth.onAuthStateChanged(user => {
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   if(el) { el.textContent = msg; el.style.display = 'block'; }
-  if(typeof toast === 'function') toast(msg, 'e');
+}
+
+function _authSetLoading(loading) {
+  const si = document.getElementById('btn-signin');
+  const su = document.getElementById('btn-signup');
+  if(!si || !su) return;
+  if(loading) {
+    si.innerHTML = '<span class="spinner"></span> Signing in...';
+    su.innerHTML = '<span class="spinner"></span>';
+    si.classList.add('btn-loading'); su.classList.add('btn-loading');
+  } else {
+    si.innerHTML = 'Sign In'; su.innerHTML = 'Sign Up';
+    si.classList.remove('btn-loading'); su.classList.remove('btn-loading');
+  }
+}
+
+function _friendlyError(err) {
+  const code = err.code || '';
+  if(code === 'auth/user-not-found')       return '❌ No account with this email. Click Sign Up to create one.';
+  if(code === 'auth/wrong-password')        return '❌ Wrong password. Please try again.';
+  if(code === 'auth/invalid-email')         return '❌ Invalid email address format.';
+  if(code === 'auth/email-already-in-use')  return '❌ Email already registered. Click Sign In instead.';
+  if(code === 'auth/weak-password')         return '❌ Password too weak — minimum 6 characters.';
+  if(code === 'auth/too-many-requests')     return '❌ Too many attempts. Please wait a few minutes and try again.';
+  if(code === 'auth/network-request-failed')return '❌ Network error. Check your internet connection.';
+  if(code === 'auth/invalid-credential')    return '❌ Wrong email or password. Try again or click Sign Up.';
+  if(code === 'auth/operation-not-allowed') return '❌ Email/Password sign-in is not enabled. Please use Google Sign In or contact the admin.';
+  return '❌ ' + (err.message || 'Unknown error occurred.');
 }
 
 function loginWithEmail() {
   const e = document.getElementById('auth-email').value.trim();
   const p = document.getElementById('auth-pass').value;
-  if(!e || !p) return showAuthError("Please enter email and password");
-  auth.signInWithEmailAndPassword(e, p).catch(err => {
-    console.error("Login Error", err);
-    showAuthError("Login failed: " + err.message);
-  });
+  const errEl = document.getElementById('auth-error');
+  if(errEl) errEl.style.display = 'none';
+  if(!e || !p) { showAuthError('⚠️ Please enter your email and password.'); return; }
+  _authSetLoading(true);
+  auth.signInWithEmailAndPassword(e, p)
+    .catch(err => {
+      console.error("Login Error", err);
+      showAuthError(_friendlyError(err));
+      _authSetLoading(false);
+    });
 }
 
 function signupWithEmail() {
   const e = document.getElementById('auth-email').value.trim();
   const p = document.getElementById('auth-pass').value;
-  if(!e || !p) return showAuthError("Please enter email and password");
-  if(p.length < 6) return showAuthError("Password must be at least 6 characters");
-  auth.createUserWithEmailAndPassword(e, p).catch(err => {
-    console.error("Signup Error", err);
-    showAuthError("Sign up failed: " + err.message);
-  });
+  const errEl = document.getElementById('auth-error');
+  if(errEl) errEl.style.display = 'none';
+  if(!e || !p) { showAuthError('⚠️ Please enter your email and password.'); return; }
+  if(p.length < 6) { showAuthError('⚠️ Password must be at least 6 characters.'); return; }
+  _authSetLoading(true);
+  auth.createUserWithEmailAndPassword(e, p)
+    .catch(err => {
+      console.error("Signup Error", err);
+      showAuthError(_friendlyError(err));
+      _authSetLoading(false);
+    });
 }
 
 function loginWithGoogle() {
+  const errEl = document.getElementById('auth-error');
+  if(errEl) errEl.style.display = 'none';
   auth.signInWithPopup(googleProvider).catch(error => {
-    console.error("Login failed", error);
-    showAuthError("Google Login failed: " + error.message);
+    console.error("Google Login failed", error);
+    showAuthError(_friendlyError(error));
   });
 }
 
@@ -2650,13 +2709,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sidebar date
-  document.getElementById('sb-date').textContent = new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
-
-  // Keyboard
-  initKeyboard();
-
-  // Boot
-  TM.handleRecurring();
-  FM.load();
-  NM.init();
-  renderDashboar
+  document.getEle
