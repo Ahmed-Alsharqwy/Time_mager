@@ -368,6 +368,74 @@ canvas{width:100%!important;display:block;max-width:100%}
 .p-stat-val { font-size: 22px; font-weight: 800; font-family: var(--mono); color: var(--text); }
 .p-stat-lbl { font-size: 10px; color: var(--tm); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
 
+/* ── MONTH PLANNER ───────────────────────── */
+.mp-wrap { display: flex; flex-direction: column; gap: 0; }
+.mp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+.mp-nav { display: flex; align-items: center; gap: 6px; }
+.mp-nav-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--td); cursor: pointer; border-radius: var(--r); padding: 4px 9px; font-size: 13px; transition: all var(--ease); }
+.mp-nav-btn:hover { background: var(--s3); color: var(--text); }
+.mp-month-lbl { font-size: 14px; font-weight: 700; color: var(--text); font-family: var(--mono); min-width: 130px; text-align: center; }
+
+.mp-week { border: 1px solid var(--b1); border-radius: var(--rl); overflow: hidden; margin-bottom: 8px; }
+.mp-week-hd { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--s2); cursor: pointer; user-select: none; transition: background var(--ease); }
+.mp-week-hd:hover { background: var(--s3); }
+.mp-week-lbl { font-size: 11px; font-weight: 700; color: var(--td); text-transform: uppercase; letter-spacing: .8px; display: flex; align-items: center; gap: 8px; }
+.mp-week-badge { font-size: 10px; font-family: var(--mono); color: var(--accent); background: var(--a-dim); padding: 2px 7px; border-radius: 99px; }
+.mp-week-arrow { font-size: 10px; color: var(--tm); transition: transform var(--ease); }
+.mp-week-arrow.open { transform: rotate(90deg); }
+.mp-days { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--b1); }
+
+.mp-day { border-right: 1px solid var(--b1); padding: 7px 6px; min-height: 90px; display: flex; flex-direction: column; gap: 3px; transition: background var(--ease); position: relative; }
+.mp-day:last-child { border-right: none; }
+.mp-day:hover { background: var(--s2); }
+.mp-day.today { background: var(--a-dim); }
+.mp-day.today .mp-day-num { color: var(--accent); font-weight: 800; }
+.mp-day.drag-over { background: rgba(96,165,250,.12); outline: 2px dashed var(--blue); outline-offset: -2px; }
+.mp-day.past { opacity: .6; }
+.mp-day-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.mp-day-name { font-size: 8px; color: var(--tm); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+.mp-day-num { font-size: 13px; font-weight: 700; color: var(--td); font-family: var(--mono); line-height: 1; }
+.mp-add-btn { width: 16px; height: 16px; border-radius: 50%; border: 1px dashed var(--b2); background: none; cursor: pointer; color: var(--tm); font-size: 11px; display: flex; align-items: center; justify-content: center; transition: all var(--ease); opacity: 0; flex-shrink: 0; }
+.mp-day:hover .mp-add-btn { opacity: 1; }
+.mp-add-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; opacity: 1; }
+
+.mp-chip { background: var(--s3); border: 1px solid var(--b1); border-radius: 4px; padding: 3px 5px; font-size: 10px; color: var(--text); cursor: grab; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all var(--ease); border-left: 2px solid var(--tm); display: flex; align-items: center; gap: 3px; }
+.mp-chip:hover { border-color: var(--b2); background: var(--s2); }
+.mp-chip:active { cursor: grabbing; }
+.mp-chip.ph { border-left-color: var(--red); }
+.mp-chip.pm { border-left-color: var(--accent); }
+.mp-chip.pl { border-left-color: var(--tm); }
+.mp-chip.done { opacity: .4; text-decoration: line-through; }
+.mp-chip.dragging { opacity: .3; }
+.mp-chip-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mp-chip-del { opacity: 0; font-size: 9px; color: var(--tm); cursor: pointer; flex-shrink: 0; padding: 0 1px; }
+.mp-chip:hover .mp-chip-del { opacity: 1; }
+.mp-chip-del:hover { color: var(--red); }
+.mp-more { font-size: 9px; color: var(--tm); cursor: pointer; padding: 1px 3px; }
+.mp-more:hover { color: var(--accent); }
+
+/* Task Picker Modal */
+.mp-picker-bk { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 600; display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(3px); }
+.mp-picker-bk.on { display: flex; }
+.mp-picker { background: var(--s1); border: 1px solid var(--b2); border-radius: var(--rl); width: 100%; max-width: 440px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.mp-picker-hd { padding: 14px 16px 10px; border-bottom: 1px solid var(--b1); display: flex; align-items: center; justify-content: space-between; }
+.mp-picker-title { font-size: 14px; font-weight: 700; }
+.mp-picker-date { font-size: 11px; color: var(--accent); font-family: var(--mono); }
+.mp-picker-search { padding: 10px 14px; border-bottom: 1px solid var(--b1); }
+.mp-picker-search input { width: 100%; }
+.mp-picker-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.mp-picker-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r); border: 1px solid var(--b1); cursor: pointer; transition: all var(--ease); background: var(--s2); }
+.mp-picker-item:hover { border-color: var(--accent); background: var(--a-dim); }
+.mp-picker-item.assigned { opacity: .5; border-style: dashed; }
+.mp-picker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mp-picker-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-picker-meta { font-size: 10px; color: var(--tm); font-family: var(--mono); flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .mp-days { grid-template-columns: repeat(7, 1fr); overflow-x: auto; }
+  .mp-day { min-width: 80px; min-height: 72px; }
+}
+
 /* ── DAILY HABITS WIDGET ─────────────────── */
 .habits-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 13px; }
 .hab-section-lbl { font-size: 9px; font-weight: 700; color: var(--tm); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
@@ -608,7 +676,31 @@ canvas{width:100%!important;display:block;max-width:100%}
         <div id="d-mit"></div>
         <div id="d-habits"></div>
       </div>
+
+      <!-- Month Planner -->
+      <div class="sh" style="margin-top:4px">
+        <div class="st">📆 <em>المنص</em> — Monthly Planner</div>
+        <button class="btn btn-g btn-sm" onclick="MP.scrollToToday()">📍 Today</button>
+      </div>
+      <div id="d-month-planner"></div>
     </div>
+
+<!-- ════ TASK PICKER MODAL ════ -->
+<div class="mp-picker-bk" id="mp-picker-bk" onclick="if(event.target===this)MP.closePicker()">
+  <div class="mp-picker">
+    <div class="mp-picker-hd">
+      <div>
+        <div class="mp-picker-title">📌 Assign Task to Day</div>
+        <div class="mp-picker-date" id="mp-picker-date-lbl"></div>
+      </div>
+      <button class="mclose" onclick="MP.closePicker()">✕</button>
+    </div>
+    <div class="mp-picker-search">
+      <input type="text" class="fi" id="mp-picker-search" placeholder="Search tasks..." oninput="MP.filterPicker(this.value)">
+    </div>
+    <div class="mp-picker-list" id="mp-picker-list"></div>
+  </div>
+</div>
 
     <!-- ══ PROFILE VIEW ══ -->
     <div id="view-profile" class="view">
@@ -2106,6 +2198,255 @@ function renderHabits() {
 }
 
 // ═══════════════════════════════════════════
+// MONTH PLANNER ENGINE
+// ═══════════════════════════════════════════
+const MP = {
+  _offset: 0,        // month offset from current (0 = this month)
+  _expandedWeeks: new Set([0,1,2,3]), // all expanded by default
+  _dragTaskId: null,
+  _pickerDate: null,
+  _pickerSearch: '',
+
+  /* ── helpers ── */
+  _monthStart(offset=0) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + offset);
+    d.setHours(0,0,0,0);
+    return d;
+  },
+
+  _dateStr(d) {
+    return d.toISOString().split('T')[0];
+  },
+
+  _addDays(base, n) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + n);
+    return d;
+  },
+
+  /* Build 4-week grid: starts on Monday of the week containing month start */
+  _buildGrid(offset=0) {
+    const ms = this._monthStart(offset);
+    const dow = ms.getDay();           // 0=Sun
+    const mondayOff = dow===0 ? -6 : 1-dow;   // shift to Monday
+    const gridStart = this._addDays(ms, mondayOff);
+    const weeks = [];
+    for(let w=0;w<4;w++){
+      const days = [];
+      for(let d=0;d<7;d++){
+        days.push(this._addDays(gridStart, w*7+d));
+      }
+      weeks.push(days);
+    }
+    return { weeks, monthStart: ms };
+  },
+
+  /* ── main render ── */
+  render() {
+    const el = document.getElementById('d-month-planner');
+    if(!el) return;
+    const { weeks, monthStart } = this._buildGrid(this._offset);
+    const today = todayStr();
+    const allTasks = DB.getTasks().filter(t=>!t.parentId);
+    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const monthName = monthStart.toLocaleDateString([],{month:'long',year:'numeric'});
+
+    let html = `<div class="mp-wrap">
+      <div class="mp-header">
+        <div class="mp-nav">
+          <button class="mp-nav-btn" onclick="MP.prevMonth()">‹</button>
+          <div class="mp-month-lbl">${monthName}</div>
+          <button class="mp-nav-btn" onclick="MP.nextMonth()">›</button>
+        </div>
+        <div style="font-size:10px;color:var(--tm)">${allTasks.filter(t=>t.dueDate && weeks.flat().some(d=>this._dateStr(d)===t.dueDate)).length} tasks scheduled</div>
+      </div>`;
+
+    weeks.forEach((days, wi) => {
+      const wStart = this._dateStr(days[0]);
+      const wEnd   = this._dateStr(days[6]);
+      const wTasks = allTasks.filter(t=>t.dueDate>=wStart && t.dueDate<=wEnd && t.status!=='completed');
+      const isOpen = this._expandedWeeks.has(wi);
+      const hasToday = days.some(d=>this._dateStr(d)===today);
+
+      html += `<div class="mp-week" id="mp-week-${wi}">
+        <div class="mp-week-hd" onclick="MP.toggleWeek(${wi})">
+          <div class="mp-week-lbl">
+            Week ${wi+1}
+            ${hasToday?'<span style="color:var(--accent);font-size:9px">● Today</span>':''}
+            ${wTasks.length?`<span class="mp-week-badge">${wTasks.length} tasks</span>`:''}
+          </div>
+          <span class="mp-week-arrow ${isOpen?'open':''}">▶</span>
+        </div>`;
+
+      if(isOpen) {
+        html += `<div class="mp-days">`;
+        days.forEach((day, di) => {
+          const ds = this._dateStr(day);
+          const isToday = ds === today;
+          const isPast  = ds < today;
+          const dayTasks = allTasks.filter(t=>t.dueDate===ds);
+          const shown = dayTasks.slice(0,3);
+          const extra = dayTasks.length - shown.length;
+
+          const chipsHTML = shown.map(t=>`
+            <div class="mp-chip p${t.priority[0]} ${t.status==='completed'?'done':''}"
+              draggable="true"
+              data-tid="${t.id}"
+              ondragstart="MP.onDragStart(event,'${t.id}')"
+              ondragend="MP.onDragEnd(event)"
+              title="${esc(t.title)}">
+              <span class="mp-chip-txt">${esc(t.title)}</span>
+              <span class="mp-chip-del" onclick="event.stopPropagation();MP.unassign('${t.id}')" title="Remove date">×</span>
+            </div>`).join('');
+
+          html += `<div class="mp-day ${isToday?'today':''} ${isPast&&!isToday?'past':''}"
+            id="mp-day-${ds}"
+            ondragover="MP.onDragOver(event,'${ds}')"
+            ondragleave="MP.onDragLeave(event)"
+            ondrop="MP.onDrop(event,'${ds}')">
+            <div class="mp-day-hd">
+              <div>
+                <div class="mp-day-name">${dayNames[di]}</div>
+                <div class="mp-day-num">${day.getDate()}</div>
+              </div>
+              <button class="mp-add-btn" onclick="MP.openPicker('${ds}')" title="Assign task">+</button>
+            </div>
+            ${chipsHTML}
+            ${extra>0?`<div class="mp-more" onclick="MP.openPicker('${ds}')">+${extra} more</div>`:''}
+          </div>`;
+        });
+        html += `</div>`; // .mp-days
+      }
+
+      html += `</div>`; // .mp-week
+    });
+
+    html += `</div>`;
+    el.innerHTML = html;
+  },
+
+  prevMonth() { this._offset--; this.render(); },
+  nextMonth() { this._offset++; this.render(); },
+
+  toggleWeek(wi) {
+    if(this._expandedWeeks.has(wi)) this._expandedWeeks.delete(wi);
+    else this._expandedWeeks.add(wi);
+    this.render();
+  },
+
+  scrollToToday() {
+    this._offset = 0;
+    this._expandedWeeks = new Set([0,1,2,3]);
+    this.render();
+    setTimeout(()=>{
+      const el = document.querySelector('.mp-day.today');
+      if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 100);
+  },
+
+  /* ── drag & drop ── */
+  onDragStart(e, taskId) {
+    this._dragTaskId = taskId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+    setTimeout(()=>{ const el=e.target; if(el) el.classList.add('dragging'); }, 0);
+  },
+
+  onDragEnd(e) {
+    document.querySelectorAll('.mp-chip.dragging').forEach(el=>el.classList.remove('dragging'));
+    document.querySelectorAll('.mp-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    this._dragTaskId = null;
+  },
+
+  onDragOver(e, dateStr) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const cell = document.getElementById('mp-day-'+dateStr);
+    if(cell) cell.classList.add('drag-over');
+  },
+
+  onDragLeave(e) {
+    // Only remove if actually leaving the cell (not entering a child)
+    const cell = e.currentTarget;
+    if(cell && !cell.contains(e.relatedTarget)) cell.classList.remove('drag-over');
+  },
+
+  onDrop(e, dateStr) {
+    e.preventDefault();
+    const tid = this._dragTaskId || e.dataTransfer.getData('text/plain');
+    if(!tid) return;
+    TM.update(tid, {dueDate: dateStr});
+    toast(`📌 Task scheduled for ${dateStr}`,'s',2000);
+    this.render();
+    refreshAll();
+  },
+
+  unassign(taskId) {
+    TM.update(taskId, {dueDate: null});
+    this.render();
+    refreshAll();
+    toast('Date removed','',1500);
+  },
+
+  /* ── picker ── */
+  openPicker(dateStr) {
+    this._pickerDate = dateStr;
+    this._pickerSearch = '';
+    const d = new Date(dateStr+'T12:00:00');
+    const lbl = d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+    document.getElementById('mp-picker-date-lbl').textContent = lbl;
+    document.getElementById('mp-picker-search').value = '';
+    document.getElementById('mp-picker-bk').classList.add('on');
+    this.filterPicker('');
+    setTimeout(()=>document.getElementById('mp-picker-search').focus(), 80);
+  },
+
+  closePicker() {
+    document.getElementById('mp-picker-bk').classList.remove('on');
+    this._pickerDate = null;
+  },
+
+  filterPicker(q) {
+    this._pickerSearch = (q||'').toLowerCase();
+    const el = document.getElementById('mp-picker-list');
+    if(!el) return;
+    const allTasks = DB.getTasks().filter(t=>!t.parentId && t.status!=='completed');
+    const filtered = allTasks.filter(t=>
+      !this._pickerSearch || t.title.toLowerCase().includes(this._pickerSearch)
+    );
+
+    if(!filtered.length) {
+      el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">No tasks found</div>`;
+      return;
+    }
+
+    const prioColor = {high:'var(--red)',medium:'var(--accent)',low:'var(--tm)'};
+    el.innerHTML = filtered.map(t=>{
+      const assigned = t.dueDate === this._pickerDate;
+      const otherDate = t.dueDate && t.dueDate !== this._pickerDate ? t.dueDate : null;
+      return `<div class="mp-picker-item ${assigned?'assigned':''}" onclick="MP.assignTask('${t.id}')">
+        <div class="mp-picker-dot" style="background:${prioColor[t.priority]||'var(--tm)'}"></div>
+        <div class="mp-picker-name">${esc(t.title)}</div>
+        <div class="mp-picker-meta">${assigned?'✓ assigned':otherDate?'📅 '+otherDate:t.level}</div>
+      </div>`;
+    }).join('');
+  },
+
+  assignTask(taskId) {
+    if(!this._pickerDate) return;
+    const existing = DB.getTasks().find(t=>t.id===taskId);
+    const wasDate = existing?.dueDate;
+    TM.update(taskId, {dueDate: this._pickerDate});
+    toast(`📌 Task assigned to ${this._pickerDate}`,'s',2000);
+    this.closePicker();
+    this.render();
+    refreshAll();
+  },
+};
+
+// ═══════════════════════════════════════════
 // RENDER DASHBOARD
 // ═══════════════════════════════════════════
 function renderDashboard() {
@@ -2204,6 +2545,9 @@ function renderDashboard() {
       ${overdue.length>5?`<div style="font-size:11px;color:var(--tm);margin-top:4px">+${overdue.length-5} more...</div>`:''}
     </div>`;
   } else da.style.display='none';
+
+  // Month Planner
+  MP.render();
 }
 
 // ═══════════════════════════════════════════
@@ -2807,6 +3151,7 @@ function initKeyboard() {
       if(document.getElementById('fo').classList.contains('on')) FM.closeOverlay();
       document.getElementById('shortcut-panel').classList.remove('on');
       closeSidebar();
+      MP.closePicker();
       return;
     }
     if(inInput) return;
