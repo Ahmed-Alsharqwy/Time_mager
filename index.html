@@ -388,8 +388,10 @@ canvas{width:100%!important;display:block;max-width:100%}
 .mp-day { border-right: 1px solid var(--b1); padding: 7px 6px; min-height: 90px; display: flex; flex-direction: column; gap: 3px; transition: background var(--ease); position: relative; }
 .mp-day:last-child { border-right: none; }
 .mp-day:hover { background: var(--s2); }
-.mp-day.today { background: var(--a-dim); }
+.mp-day.today { background: var(--a-dim); outline: 2px solid var(--accent); outline-offset: -2px; }
 .mp-day.today .mp-day-num { color: var(--accent); font-weight: 800; }
+.mp-day.today .mp-day-name { color: var(--accent); }
+.mp-today-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-left: 3px; vertical-align: middle; box-shadow: 0 0 5px var(--accent); }
 .mp-day.drag-over { background: rgba(96,165,250,.12); outline: 2px dashed var(--blue); outline-offset: -2px; }
 .mp-day.past { opacity: .6; }
 .mp-day-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
@@ -2303,10 +2305,10 @@ const MP = {
       if(!inMonth) return; // skip weeks fully outside month (shouldn't happen with new logic)
 
       html += `<div class="mp-week" id="mp-week-${wi}">
-        <div class="mp-week-hd" onclick="MP.toggleWeek(${wi})">
+        <div class="mp-week-hd" onclick="MP.toggleWeek(${wi})" style="${hasToday?'border-left:3px solid var(--accent);':''}">
           <div class="mp-week-lbl">
             Week ${wi+1}
-            ${hasToday?'<span style="color:var(--accent);font-size:9px">● Today</span>':''}
+            ${hasToday?'<span style="color:var(--accent);font-size:10px;font-weight:700">● This Week</span>':''}
             ${wTasks.length?`<span class="mp-week-badge">${wTasks.length}</span>`:''}
           </div>
           <span class="mp-week-arrow ${isOpen?'open':''}">▶</span>
@@ -2340,7 +2342,7 @@ const MP = {
             ondrop="MP.onDrop(event,'${ds}')">
             <div class="mp-day-hd">
               <div>
-                <div class="mp-day-name">${dayNames[di]}</div>
+                <div class="mp-day-name">${dayNames[di]}${isToday?'<span class="mp-today-dot"></span>':''}</div>
                 <div class="mp-day-num" style="${!inCurMonth?'opacity:.35':''}">${day.getDate()}</div>
               </div>
               <button class="mp-add-btn" onclick="MP.openPicker('${ds}')" title="Assign task">+</button>
@@ -2495,25 +2497,6 @@ const MP = {
     this.closePicker(); this.render(); refreshAll();
   },
 };
-
-  /* ── helpers ── */
-  _monthStart(offset=0) {
-    const d = new Date();
-    d.setDate(1);
-    d.setMonth(d.getMonth() + offset);
-    d.setHours(0,0,0,0);
-    return d;
-  },
-
-  _dateStr(d) {
-    return d.toISOString().split('T')[0];
-  },
-
-  _addDays(base, n) {
-    const d = new Date(base);
-    d.setDate(d.getDate() + n);
-    return d;
-  },
 
 // ═══════════════════════════════════════════
 // RENDER DASHBOARD
