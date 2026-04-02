@@ -2594,21 +2594,18 @@ function renderDashboard() {
   if(msFocus) msFocus.textContent = fmtDur(focus) || '0m';
   if(msStreak) msStreak.textContent = streak.count;
 
-  // Render Today's Tasks — urgency sort: overdue → time-passed → upcoming → daily/biweekly/weekly
+  // Render Today's Tasks — includes subtasks with dueDate=today
   const allTasks = DB.getTasks();
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes();
   const td = todayStr();
 
   const todayTasks = allTasks.filter(t =>
-    !t.parentId &&
     t.status !== 'completed' &&
     (
       isOverdue(t.dueDate) ||
       t.dueDate === td ||
-      (t.level === 'daily' && !t.dueDate) ||
-      (t.level === 'biweekly' && !t.dueDate) ||
-      (t.level === 'weekly' && !t.dueDate)
+      (!t.parentId && (t.level === 'daily' || t.level === 'biweekly' || t.level === 'weekly') && !t.dueDate)
     )
   );
 
@@ -2634,15 +2631,40 @@ function renderDashboard() {
   });
 
   const todayList = document.getElementById('d-today-list');
-  const displayTasks = todayTasks.slice(0, 5);
+  const displayTasks = todayTasks.slice(0, 7);
   const remaining = todayTasks.length - displayTasks.length;
+
   if(displayTasks.length) {
     todayList.innerHTML = '';
-    displayTasks.forEach(t => todayList.appendChild(mkTaskEl(t, 0, allTasks, null)));
+    displayTasks.forEach(t => {
+      // For subtasks — render as a compact flat row instead of nested mkTaskEl
+      if(t.parentId) {
+        const parent = allTasks.find(x=>x.id===t.parentId);
+        const isOD = isOverdue(t.dueDate) && t.status!=='completed';
+        const row = document.createElement('div');
+        row.className = `ti p${t.priority[0]}`;
+        row.innerHTML = `<div class="trow">
+          <button class="tsb ${t.status==='completed'?'done':t.status==='in-progress'?'prog':''}"
+            onclick="event.stopPropagation();TM.toggle('${t.id}');"
+            title="Toggle complete">${t.status==='completed'?'✓':''}</button>
+          <div style="font-size:10px;color:var(--tm);flex-shrink:0;padding-right:3px">↳</div>
+          <div class="tname" style="font-size:13px">${esc(t.title)}${parent?`<span style="font-size:9px;color:var(--tm);margin-left:6px">${esc(parent.title)}</span>`:''}
+          </div>
+          ${isOD?'<span style="font-size:9px;color:var(--red);flex-shrink:0">OD</span>':''}
+          ${t.dueTime?`<span style="font-size:10px;color:var(--tm);flex-shrink:0">⏰${t.dueTime}</span>`:''}
+          <div class="tact">
+            <button class="btn btn-s btn-xs" onclick="event.stopPropagation();FM.startTask('${t.id}')" title="Focus">▶</button>
+          </div>
+        </div>`;
+        todayList.appendChild(row);
+      } else {
+        todayList.appendChild(mkTaskEl(t, 0, allTasks, null));
+      }
+    });
     if(remaining > 0) {
       const moreEl = document.createElement('div');
       moreEl.style.cssText = 'text-align:center;padding:8px;font-size:12px;color:var(--tm);cursor:pointer;border:1px dashed var(--b1);border-radius:var(--r);margin-top:4px';
-      moreEl.innerHTML = `+${remaining} more task${remaining>1?'s':''} — <span style="color:var(--accent)">View all →</span>`;
+      moreEl.innerHTML = `+${remaining} more — <span style="color:var(--accent)">View all →</span>`;
       moreEl.onclick = () => switchView('tasks');
       todayList.appendChild(moreEl);
     }
