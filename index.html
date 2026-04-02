@@ -222,6 +222,7 @@ body{overflow:hidden}
 .bmonthly{background:rgba(167,139,250,.15);color:var(--purple)}
 .bweekly{background:rgba(96,165,250,.15);color:var(--blue)}
 .bdaily{background:rgba(52,211,153,.15);color:var(--green)}
+.bbiweekly{background:rgba(245,158,11,.15);color:var(--accent)}
 .brec{background:rgba(96,165,250,.1);color:var(--blue);font-size:9px}
 .bwarn{background:rgba(248,113,113,.15);color:var(--red);font-size:9px}
 .tact{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity var(--ease)}
@@ -383,7 +384,9 @@ canvas{width:100%!important;display:block;max-width:100%}
 .mp-week-badge { font-size: 10px; font-family: var(--mono); color: var(--accent); background: var(--a-dim); padding: 2px 7px; border-radius: 99px; }
 .mp-week-arrow { font-size: 10px; color: var(--tm); transition: transform var(--ease); }
 .mp-week-arrow.open { transform: rotate(90deg); }
-.mp-days { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--b1); }
+.mp-days-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-top: 1px solid var(--b1); }
+.mp-days-scroll::-webkit-scrollbar { display: none; }
+.mp-days { display: grid; grid-template-columns: repeat(7, minmax(90px, 1fr)); min-width: 630px; }
 
 .mp-day { border-right: 1px solid var(--b1); padding: 7px 6px; min-height: 90px; display: flex; flex-direction: column; gap: 3px; transition: background var(--ease); position: relative; }
 .mp-day:last-child { border-right: none; }
@@ -393,11 +396,12 @@ canvas{width:100%!important;display:block;max-width:100%}
 .mp-day.today .mp-day-name { color: var(--accent); }
 .mp-today-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-left: 3px; vertical-align: middle; box-shadow: 0 0 5px var(--accent); }
 .mp-day.drag-over { background: rgba(96,165,250,.12); outline: 2px dashed var(--blue); outline-offset: -2px; }
-.mp-day.past { opacity: .6; }
+.mp-day.past { opacity: .65; }
 .mp-day-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
 .mp-day-name { font-size: 8px; color: var(--tm); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
 .mp-day-num { font-size: 13px; font-weight: 700; color: var(--td); font-family: var(--mono); line-height: 1; }
-.mp-add-btn { width: 16px; height: 16px; border-radius: 50%; border: 1px dashed var(--b2); background: none; cursor: pointer; color: var(--tm); font-size: 11px; display: flex; align-items: center; justify-content: center; transition: all var(--ease); opacity: 0; flex-shrink: 0; }
+.mp-add-btn { width: 18px; height: 18px; border-radius: 50%; border: 1px dashed var(--b2); background: none; cursor: pointer; color: var(--tm); font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all var(--ease); flex-shrink: 0; opacity: 0; }
+@media (hover: none) { .mp-add-btn { opacity: 1; } } /* always visible on touch devices */
 .mp-day:hover .mp-add-btn { opacity: 1; }
 .mp-add-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; opacity: 1; }
 
@@ -451,13 +455,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 .mp-picker-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mp-picker-meta { font-size: 10px; color: var(--tm); font-family: var(--mono); flex-shrink: 0; }
 
-@media (max-width: 768px) {
-  .mp-days { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .mp-days::-webkit-scrollbar { display: none; }
-  .mp-day { min-width: 88px; min-height: 80px; flex-shrink: 0; border-right: 1px solid var(--b1); }
-  .mp-day:last-child { border-right: none; }
-  .mp-chip { font-size: 9px; }
-}
+/* touch drag support handled via JS touch events */
 
 /* ── DAILY HABITS WIDGET ─────────────────── */
 .habits-card { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 13px; }
@@ -783,6 +781,7 @@ canvas{width:100%!important;display:block;max-width:100%}
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn btn-g btn-sm" onclick="openTaskModal(null,'','daily')">+ Daily</button>
           <button class="btn btn-g btn-sm" onclick="openTaskModal(null,'','weekly')">+ Weekly</button>
+          <button class="btn btn-g btn-sm" onclick="openTaskModal(null,'','biweekly')">+ Bi-Weekly</button>
           <button class="btn btn-g btn-sm" onclick="openTaskModal(null,'','monthly')">+ Monthly</button>
           <button class="btn btn-p btn-sm" onclick="openTaskModal(null)">+ Task</button>
         </div>
@@ -796,6 +795,7 @@ canvas{width:100%!important;display:block;max-width:100%}
         <button class="fbtn active" data-f="all">All</button>
         <button class="fbtn" data-f="daily">Daily</button>
         <button class="fbtn" data-f="weekly">Weekly</button>
+        <button class="fbtn" data-f="biweekly">Bi-Weekly</button>
         <button class="fbtn" data-f="monthly">Monthly</button>
         <button class="fbtn" data-f="high">🔴 High</button>
         <button class="fbtn" data-f="pending">Pending</button>
@@ -883,6 +883,7 @@ canvas{width:100%!important;display:block;max-width:100%}
           <select class="fsel" id="f-tlevel">
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </div>
@@ -909,6 +910,7 @@ canvas{width:100%!important;display:block;max-width:100%}
             <option value="none">None</option>
             <option value="daily">Daily ↻</option>
             <option value="weekly">Weekly ↻</option>
+            <option value="biweekly">Bi-Weekly ↻</option>
             <option value="monthly">Monthly ↻</option>
           </select>
         </div>
@@ -1583,6 +1585,8 @@ const TM = {
     });
     if(done) { LM.log('completed', id); SM.update(); toast('✓ Task completed!','s'); }
     else LM.log('uncompleted', id);
+    // Refresh all views so task disappears/appears in Today's Focus and Planner
+    if(typeof refreshAll === 'function') refreshAll();
   },
 
   start(id) { this.update(id, {status:'in-progress'}); LM.log('started', id); },
@@ -1661,6 +1665,9 @@ const TM = {
       else if(t.recurrence==='weekly') {
         const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
         if(diff >= 7) reset=true;
+      } else if(t.recurrence==='biweekly') {
+        const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
+        if(diff >= 14) reset=true;
       } else if(t.recurrence==='monthly') {
         const l=new Date(t.lastCompletedDate), n=new Date(today);
         if(n.getMonth()!==l.getMonth()||n.getFullYear()!==l.getFullYear()) reset=true;
@@ -1694,7 +1701,7 @@ const TM = {
 
   levelStats() {
     const tasks = DB.getTasks();
-    return ['daily','weekly','monthly'].map(lv=>{
+    return ['daily','weekly','biweekly','monthly'].map(lv=>{
       const lt = tasks.filter(t=>t.level===lv);
       const done = lt.filter(t=>t.status==='completed').length;
       return { level:lv, total:lt.length, done, pct: lt.length ? Math.round(done/lt.length*100) : 0 };
@@ -2315,7 +2322,7 @@ const MP = {
         </div>`;
 
       if(isOpen) {
-        html += `<div class="mp-days">`;
+        html += `<div class="mp-days-scroll"><div class="mp-days">`;
         days.forEach((day, di) => {
           const ds = this._dateStr(day);
           const inCurMonth = day.getMonth()===monthStart.getMonth();
@@ -2351,7 +2358,7 @@ const MP = {
             ${extra>0?`<div class="mp-more" onclick="MP.openPicker('${ds}')">+${extra}</div>`:''}
           </div>`;
         });
-        html += `</div>`; // .mp-days
+        html += `</div></div>`; // .mp-days + .mp-days-scroll
       }
       html += `</div>`; // .mp-week
     });
@@ -2407,6 +2414,75 @@ const MP = {
     TM.update(taskId,{dueDate:null});
     this.render(); refreshAll();
     toast('Date removed','',1500);
+  },
+
+  /* ── Touch drag & drop ── */
+  _touch: { taskId:null, ghost:null, lastTarget:null },
+
+  initTouchDrag() {
+    // Delegate touch events on the planner container
+    const el = document.getElementById('d-month-planner');
+    if(!el || el._touchInited) return;
+    el._touchInited = true;
+
+    el.addEventListener('touchstart', e => {
+      const chip = e.target.closest('.mp-chip[data-tid]');
+      if(!chip) return;
+      const tid = chip.dataset.tid;
+      this._touch.taskId = tid;
+
+      // Create ghost element
+      const ghost = chip.cloneNode(true);
+      ghost.style.cssText = `position:fixed;z-index:9999;opacity:0.85;pointer-events:none;width:${chip.offsetWidth}px;font-size:11px;`;
+      document.body.appendChild(ghost);
+      this._touch.ghost = ghost;
+
+      chip.classList.add('dragging');
+      e.preventDefault();
+    }, {passive:false});
+
+    el.addEventListener('touchmove', e => {
+      if(!this._touch.taskId) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const g = this._touch.ghost;
+      if(g) { g.style.left = (t.clientX - 40)+'px'; g.style.top = (t.clientY - 16)+'px'; }
+
+      // Find which day cell we're over
+      const target = document.elementFromPoint(t.clientX, t.clientY);
+      const dayCell = target?.closest('.mp-day[id^="mp-day-"]');
+
+      if(this._touch.lastTarget && this._touch.lastTarget !== dayCell) {
+        this._touch.lastTarget.classList.remove('drag-over');
+      }
+      if(dayCell) {
+        dayCell.classList.add('drag-over');
+        this._touch.lastTarget = dayCell;
+      }
+    }, {passive:false});
+
+    el.addEventListener('touchend', e => {
+      if(!this._touch.taskId) return;
+
+      // Clean up ghost
+      if(this._touch.ghost) { this._touch.ghost.remove(); this._touch.ghost = null; }
+      document.querySelectorAll('.mp-chip.dragging').forEach(c=>c.classList.remove('dragging'));
+      document.querySelectorAll('.mp-day.drag-over').forEach(c=>c.classList.remove('drag-over'));
+
+      const t = e.changedTouches[0];
+      const target = document.elementFromPoint(t.clientX, t.clientY);
+      const dayCell = target?.closest('.mp-day[id^="mp-day-"]');
+
+      if(dayCell) {
+        const dateStr = dayCell.id.replace('mp-day-','');
+        TM.update(this._touch.taskId, {dueDate: dateStr});
+        toast(`📌 Moved to ${dateStr}`,'s',2000);
+        this.render(); refreshAll();
+      }
+
+      this._touch.taskId = null;
+      this._touch.lastTarget = null;
+    });
   },
 
   /* ── picker with subtask tree ── */
@@ -2518,21 +2594,28 @@ function renderDashboard() {
   if(msFocus) msFocus.textContent = fmtDur(focus) || '0m';
   if(msStreak) msStreak.textContent = streak.count;
 
-  // Render Today's Tasks — urgency sort: overdue → time-passed → upcoming → daily
+  // Render Today's Tasks — urgency sort: overdue → time-passed → upcoming → daily/biweekly/weekly
   const allTasks = DB.getTasks();
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes();
+  const td = todayStr();
 
   const todayTasks = allTasks.filter(t =>
     !t.parentId &&
     t.status !== 'completed' &&
-    (isOverdue(t.dueDate) || t.dueDate === todayStr() || t.level === 'daily')
+    (
+      isOverdue(t.dueDate) ||
+      t.dueDate === td ||
+      (t.level === 'daily' && !t.dueDate) ||
+      (t.level === 'biweekly' && !t.dueDate) ||
+      (t.level === 'weekly' && !t.dueDate)
+    )
   );
 
-  // Urgency score: 0=overdue, 1=time passed today, 2=due today (future time), 3=daily (no specific date)
+  // Urgency score: 0=overdue, 1=time passed today, 2=due today future, 3=no-date tasks
   const urgency = t => {
     if(isOverdue(t.dueDate)) return 0;
-    if(t.dueDate === todayStr()) {
+    if(t.dueDate === td) {
       if(t.dueTime) {
         const [h,m] = t.dueTime.split(':').map(Number);
         return (h*60+m) < nowMin ? 1 : 2;
@@ -2617,6 +2700,7 @@ function renderDashboard() {
 
   // Month Planner
   MP.render();
+  MP.initTouchDrag();
 }
 
 // ═══════════════════════════════════════════
@@ -2739,6 +2823,7 @@ function renderTasks() {
     if(f==='all') return true;
     if(f==='daily')     return t.level==='daily';
     if(f==='weekly')    return t.level==='weekly';
+    if(f==='biweekly')  return t.level==='biweekly';
     if(f==='monthly')   return t.level==='monthly';
     if(f==='high')      return t.priority==='high';
     if(f==='pending')   return t.status==='pending';
