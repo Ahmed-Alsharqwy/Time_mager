@@ -427,13 +427,34 @@ canvas{width:100%!important;display:block;max-width:100%}
 .mp-picker-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r); border: 1px solid var(--b1); cursor: pointer; transition: all var(--ease); background: var(--s2); }
 .mp-picker-item:hover { border-color: var(--accent); background: var(--a-dim); }
 .mp-picker-item.assigned { opacity: .5; border-style: dashed; }
+.mp-picker-group { padding: 4px 0; }
+.mp-picker-root { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r); border: 1px solid var(--b1); cursor: pointer; transition: all var(--ease); background: var(--s2); margin-bottom: 2px; }
+.mp-picker-root:hover { border-color: var(--accent); background: var(--a-dim); }
+.mp-picker-root.assigned { opacity: .55; border-style: dashed; }
+.mp-picker-expand { width: 18px; height: 18px; border: none; background: none; color: var(--tm); cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform var(--ease); border-radius: 3px; }
+.mp-picker-expand:hover { background: var(--s3); color: var(--text); }
+.mp-picker-expand.open { transform: rotate(90deg); }
+.mp-picker-subs { padding-left: 18px; display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+.mp-picker-sub { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: var(--r); border: 1px solid var(--b1); cursor: pointer; transition: all var(--ease); background: var(--s1); font-size: 12px; }
+.mp-picker-sub:hover { border-color: var(--blue); background: var(--blue-bg); }
+.mp-picker-sub.assigned { opacity: .5; border-style: dashed; }
+
+/* Urgency indicators in Today's list */
+.ti.urgent-overdue { border-left: 3px solid var(--red) !important; }
+.ti.urgent-passed  { border-left: 3px solid var(--accent) !important; }
+.urgency-tag { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 99px; flex-shrink: 0; }
+.urgency-tag.od { background: var(--red-bg); color: var(--red); }
+.urgency-tag.pt { background: var(--a-dim); color: var(--accent); }
 .mp-picker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .mp-picker-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mp-picker-meta { font-size: 10px; color: var(--tm); font-family: var(--mono); flex-shrink: 0; }
 
 @media (max-width: 768px) {
-  .mp-days { grid-template-columns: repeat(7, 1fr); overflow-x: auto; }
-  .mp-day { min-width: 80px; min-height: 72px; }
+  .mp-days { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .mp-days::-webkit-scrollbar { display: none; }
+  .mp-day { min-width: 88px; min-height: 80px; flex-shrink: 0; border-right: 1px solid var(--b1); }
+  .mp-day:last-child { border-right: none; }
+  .mp-chip { font-size: 9px; }
 }
 
 /* ── DAILY HABITS WIDGET ─────────────────── */
@@ -679,7 +700,7 @@ canvas{width:100%!important;display:block;max-width:100%}
 
       <!-- Month Planner -->
       <div class="sh" style="margin-top:4px">
-        <div class="st">📆 <em>المنص</em> — Monthly Planner</div>
+        <div class="st">📆 <em>Monthly</em> Planner</div>
         <button class="btn btn-g btn-sm" onclick="MP.scrollToToday()">📍 Today</button>
       </div>
       <div id="d-month-planner"></div>
@@ -2201,11 +2222,279 @@ function renderHabits() {
 // MONTH PLANNER ENGINE
 // ═══════════════════════════════════════════
 const MP = {
-  _offset: 0,        // month offset from current (0 = this month)
-  _expandedWeeks: new Set([0,1,2,3]), // all expanded by default
+  _offset: 0,
+  _expandedWeeks: new Set([0,1,2,3,4,5]),
   _dragTaskId: null,
   _pickerDate: null,
   _pickerSearch: '',
+  _pickerExpandedRoots: new Set(),
+
+  /* ── helpers ── */
+  _monthStart(offset=0) {
+    const d = new Date(); d.setDate(1);
+    d.setMonth(d.getMonth()+offset); d.setHours(0,0,0,0);
+    return d;
+  },
+  _dateStr(d) {
+    // Use local date to avoid UTC shift bug
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  },
+  _addDays(base, n) {
+    const d = new Date(base); d.setDate(d.getDate()+n); return d;
+  },
+
+  /* Full month grid — covers every day of the month, padded to Mon-Sun rows */
+  _buildGrid(offset=0) {
+    const ms = this._monthStart(offset);
+    const me = new Date(ms.getFullYear(), ms.getMonth()+1, 0); // last day of month
+    const dow = ms.getDay(); // 0=Sun
+    const mondayOff = dow===0 ? -6 : 1-dow;
+    const gridStart = this._addDays(ms, mondayOff);
+    const weeks = [];
+    let cur = new Date(gridStart);
+    // Keep adding weeks until we've covered the last day of the month
+    while(cur <= me) {
+      const days = [];
+      for(let d=0;d<7;d++) { days.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+      weeks.push(days);
+    }
+    return { weeks, monthStart: ms, monthEnd: me };
+  },
+
+  /* ── main render ── */
+  render() {
+    const el = document.getElementById('d-month-planner');
+    if(!el) return;
+    const { weeks, monthStart, monthEnd } = this._buildGrid(this._offset);
+    const today = todayStr();
+    const allTasks = DB.getTasks(); // include subtasks
+    const rootTasks = allTasks.filter(t=>!t.parentId);
+    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const monthName = monthStart.toLocaleDateString([],{month:'long',year:'numeric'});
+
+    // Expand all weeks when month changes
+    if(this._expandedWeeks.size === 0) {
+      weeks.forEach((_,i)=>this._expandedWeeks.add(i));
+    }
+
+    const scheduledCount = allTasks.filter(t=>
+      t.dueDate && weeks.flat().some(d=>this._dateStr(d)===t.dueDate)
+    ).length;
+
+    let html = `<div class="mp-wrap">
+      <div class="mp-header">
+        <div class="mp-nav">
+          <button class="mp-nav-btn" onclick="MP.prevMonth()">‹</button>
+          <div class="mp-month-lbl">${monthName}</div>
+          <button class="mp-nav-btn" onclick="MP.nextMonth()">›</button>
+        </div>
+        <div style="font-size:10px;color:var(--tm)">${scheduledCount} task${scheduledCount!==1?'s':''} scheduled</div>
+      </div>`;
+
+    weeks.forEach((days, wi) => {
+      const wStart = this._dateStr(days[0]);
+      const wEnd   = this._dateStr(days[6]);
+      // Count all tasks (incl subtasks) in this week
+      const wTasks = allTasks.filter(t=>t.dueDate && t.dueDate>=wStart && t.dueDate<=wEnd && t.status!=='completed');
+      const isOpen = this._expandedWeeks.has(wi);
+      const hasToday = days.some(d=>this._dateStr(d)===today);
+      const inMonth = days.some(d=>d.getMonth()===monthStart.getMonth());
+      if(!inMonth) return; // skip weeks fully outside month (shouldn't happen with new logic)
+
+      html += `<div class="mp-week" id="mp-week-${wi}">
+        <div class="mp-week-hd" onclick="MP.toggleWeek(${wi})">
+          <div class="mp-week-lbl">
+            Week ${wi+1}
+            ${hasToday?'<span style="color:var(--accent);font-size:9px">● Today</span>':''}
+            ${wTasks.length?`<span class="mp-week-badge">${wTasks.length}</span>`:''}
+          </div>
+          <span class="mp-week-arrow ${isOpen?'open':''}">▶</span>
+        </div>`;
+
+      if(isOpen) {
+        html += `<div class="mp-days">`;
+        days.forEach((day, di) => {
+          const ds = this._dateStr(day);
+          const inCurMonth = day.getMonth()===monthStart.getMonth();
+          const isToday = ds===today;
+          const isPast  = ds<today;
+          const dayTasks = allTasks.filter(t=>t.dueDate===ds);
+          const shown = dayTasks.slice(0,3);
+          const extra = dayTasks.length - shown.length;
+
+          const chipsHTML = shown.map(t=>`
+            <div class="mp-chip p${t.priority[0]} ${t.status==='completed'?'done':''}"
+              draggable="true" data-tid="${t.id}"
+              ondragstart="MP.onDragStart(event,'${t.id}')"
+              ondragend="MP.onDragEnd(event)"
+              title="${esc(t.title)}">
+              <span class="mp-chip-txt">${t.parentId?'↳ ':''} ${esc(t.title)}</span>
+              <span class="mp-chip-del" onclick="event.stopPropagation();MP.unassign('${t.id}')" title="Remove">×</span>
+            </div>`).join('');
+
+          html += `<div class="mp-day ${isToday?'today':''} ${isPast&&!isToday?'past':''} ${!inCurMonth?'out-month':''}"
+            id="mp-day-${ds}"
+            ondragover="MP.onDragOver(event,'${ds}')"
+            ondragleave="MP.onDragLeave(event)"
+            ondrop="MP.onDrop(event,'${ds}')">
+            <div class="mp-day-hd">
+              <div>
+                <div class="mp-day-name">${dayNames[di]}</div>
+                <div class="mp-day-num" style="${!inCurMonth?'opacity:.35':''}">${day.getDate()}</div>
+              </div>
+              <button class="mp-add-btn" onclick="MP.openPicker('${ds}')" title="Assign task">+</button>
+            </div>
+            ${chipsHTML}
+            ${extra>0?`<div class="mp-more" onclick="MP.openPicker('${ds}')">+${extra}</div>`:''}
+          </div>`;
+        });
+        html += `</div>`; // .mp-days
+      }
+      html += `</div>`; // .mp-week
+    });
+
+    html += `</div>`;
+    el.innerHTML = html;
+  },
+
+  prevMonth() { this._offset--; this._expandedWeeks=new Set([0,1,2,3,4,5]); this.render(); },
+  nextMonth() { this._offset++; this._expandedWeeks=new Set([0,1,2,3,4,5]); this.render(); },
+
+  toggleWeek(wi) {
+    if(this._expandedWeeks.has(wi)) this._expandedWeeks.delete(wi);
+    else this._expandedWeeks.add(wi);
+    this.render();
+  },
+
+  scrollToToday() {
+    this._offset=0; this._expandedWeeks=new Set([0,1,2,3,4,5]); this.render();
+    setTimeout(()=>{ const el=document.querySelector('.mp-day.today'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },100);
+  },
+
+  /* ── drag & drop ── */
+  onDragStart(e,taskId) {
+    this._dragTaskId=taskId;
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',taskId);
+    setTimeout(()=>{ if(e.target) e.target.classList.add('dragging'); },0);
+  },
+  onDragEnd(e) {
+    document.querySelectorAll('.mp-chip.dragging').forEach(el=>el.classList.remove('dragging'));
+    document.querySelectorAll('.mp-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    this._dragTaskId=null;
+  },
+  onDragOver(e,dateStr) {
+    e.preventDefault(); e.dataTransfer.dropEffect='move';
+    const cell=document.getElementById('mp-day-'+dateStr);
+    if(cell) cell.classList.add('drag-over');
+  },
+  onDragLeave(e) {
+    const cell=e.currentTarget;
+    if(cell&&!cell.contains(e.relatedTarget)) cell.classList.remove('drag-over');
+  },
+  onDrop(e,dateStr) {
+    e.preventDefault();
+    const tid=this._dragTaskId||e.dataTransfer.getData('text/plain');
+    if(!tid) return;
+    TM.update(tid,{dueDate:dateStr});
+    toast(`📌 Scheduled for ${dateStr}`,'s',2000);
+    this.render(); refreshAll();
+  },
+  unassign(taskId) {
+    TM.update(taskId,{dueDate:null});
+    this.render(); refreshAll();
+    toast('Date removed','',1500);
+  },
+
+  /* ── picker with subtask tree ── */
+  openPicker(dateStr) {
+    this._pickerDate=dateStr;
+    this._pickerSearch='';
+    this._pickerExpandedRoots=new Set();
+    const d=new Date(dateStr+'T12:00:00');
+    document.getElementById('mp-picker-date-lbl').textContent=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+    document.getElementById('mp-picker-search').value='';
+    document.getElementById('mp-picker-bk').classList.add('on');
+    this.filterPicker('');
+    setTimeout(()=>document.getElementById('mp-picker-search').focus(),80);
+  },
+  closePicker() {
+    document.getElementById('mp-picker-bk').classList.remove('on');
+    this._pickerDate=null;
+  },
+
+  togglePickerRoot(rootId) {
+    if(this._pickerExpandedRoots.has(rootId)) this._pickerExpandedRoots.delete(rootId);
+    else this._pickerExpandedRoots.add(rootId);
+    this.filterPicker(this._pickerSearch);
+  },
+
+  filterPicker(q) {
+    this._pickerSearch=(q||'').toLowerCase();
+    const el=document.getElementById('mp-picker-list');
+    if(!el) return;
+    const allTasks=DB.getTasks();
+    const rootTasks=allTasks.filter(t=>!t.parentId && t.status!=='completed');
+    const prioColor={high:'var(--red)',medium:'var(--accent)',low:'var(--tm)'};
+    const sq=this._pickerSearch;
+
+    // Filter: include roots whose title matches OR have matching subtasks
+    const rootMatches=(t)=>{
+      if(!sq) return true;
+      if(t.title.toLowerCase().includes(sq)) return true;
+      return allTasks.filter(s=>s.parentId===t.id).some(s=>s.title.toLowerCase().includes(sq));
+    };
+
+    const filtered=rootTasks.filter(rootMatches);
+    if(!filtered.length){
+      el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">No tasks found</div>`;
+      return;
+    }
+
+    let html='';
+    filtered.forEach(t=>{
+      const subs=allTasks.filter(s=>s.parentId===t.id && s.status!=='completed');
+      const hasSubs=subs.length>0;
+      const isExpanded=this._pickerExpandedRoots.has(t.id)||!!sq;
+      const assigned=t.dueDate===this._pickerDate;
+      const otherDate=t.dueDate&&t.dueDate!==this._pickerDate?t.dueDate:null;
+
+      html+=`<div class="mp-picker-group">
+        <div class="mp-picker-root ${assigned?'assigned':''}" onclick="MP.assignTask('${t.id}')">
+          <div class="mp-picker-dot" style="background:${prioColor[t.priority]||'var(--tm)'}"></div>
+          <div class="mp-picker-name">${esc(t.title)}</div>
+          <div class="mp-picker-meta">${assigned?'✓':otherDate?'📅 '+otherDate:t.level}</div>
+          ${hasSubs?`<button class="mp-picker-expand ${isExpanded?'open':''}" onclick="event.stopPropagation();MP.togglePickerRoot('${t.id}')">▶</button>`:''}
+        </div>`;
+
+      if(hasSubs && isExpanded){
+        const shownSubs = sq ? subs.filter(s=>s.title.toLowerCase().includes(sq)) : subs;
+        html+=`<div class="mp-picker-subs">`;
+        shownSubs.forEach(s=>{
+          const sa=s.dueDate===this._pickerDate;
+          const sd=s.dueDate&&s.dueDate!==this._pickerDate?s.dueDate:null;
+          html+=`<div class="mp-picker-sub ${sa?'assigned':''}" onclick="MP.assignTask('${s.id}')">
+            <div class="mp-picker-dot" style="background:${prioColor[s.priority]||'var(--tm)'}"></div>
+            <span style="color:var(--tm);font-size:10px">↳</span>
+            <div class="mp-picker-name">${esc(s.title)}</div>
+            <div class="mp-picker-meta">${sa?'✓':sd?'📅 '+sd:''}</div>
+          </div>`;
+        });
+        html+=`</div>`;
+      }
+      html+=`</div>`;
+    });
+    el.innerHTML=html;
+  },
+
+  assignTask(taskId) {
+    if(!this._pickerDate) return;
+    TM.update(taskId,{dueDate:this._pickerDate});
+    toast(`📌 Assigned to ${this._pickerDate}`,'s',2000);
+    this.closePicker(); this.render(); refreshAll();
+  },
+};
 
   /* ── helpers ── */
   _monthStart(offset=0) {
@@ -2225,226 +2514,6 @@ const MP = {
     d.setDate(d.getDate() + n);
     return d;
   },
-
-  /* Build 4-week grid: starts on Monday of the week containing month start */
-  _buildGrid(offset=0) {
-    const ms = this._monthStart(offset);
-    const dow = ms.getDay();           // 0=Sun
-    const mondayOff = dow===0 ? -6 : 1-dow;   // shift to Monday
-    const gridStart = this._addDays(ms, mondayOff);
-    const weeks = [];
-    for(let w=0;w<4;w++){
-      const days = [];
-      for(let d=0;d<7;d++){
-        days.push(this._addDays(gridStart, w*7+d));
-      }
-      weeks.push(days);
-    }
-    return { weeks, monthStart: ms };
-  },
-
-  /* ── main render ── */
-  render() {
-    const el = document.getElementById('d-month-planner');
-    if(!el) return;
-    const { weeks, monthStart } = this._buildGrid(this._offset);
-    const today = todayStr();
-    const allTasks = DB.getTasks().filter(t=>!t.parentId);
-    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const monthName = monthStart.toLocaleDateString([],{month:'long',year:'numeric'});
-
-    let html = `<div class="mp-wrap">
-      <div class="mp-header">
-        <div class="mp-nav">
-          <button class="mp-nav-btn" onclick="MP.prevMonth()">‹</button>
-          <div class="mp-month-lbl">${monthName}</div>
-          <button class="mp-nav-btn" onclick="MP.nextMonth()">›</button>
-        </div>
-        <div style="font-size:10px;color:var(--tm)">${allTasks.filter(t=>t.dueDate && weeks.flat().some(d=>this._dateStr(d)===t.dueDate)).length} tasks scheduled</div>
-      </div>`;
-
-    weeks.forEach((days, wi) => {
-      const wStart = this._dateStr(days[0]);
-      const wEnd   = this._dateStr(days[6]);
-      const wTasks = allTasks.filter(t=>t.dueDate>=wStart && t.dueDate<=wEnd && t.status!=='completed');
-      const isOpen = this._expandedWeeks.has(wi);
-      const hasToday = days.some(d=>this._dateStr(d)===today);
-
-      html += `<div class="mp-week" id="mp-week-${wi}">
-        <div class="mp-week-hd" onclick="MP.toggleWeek(${wi})">
-          <div class="mp-week-lbl">
-            Week ${wi+1}
-            ${hasToday?'<span style="color:var(--accent);font-size:9px">● Today</span>':''}
-            ${wTasks.length?`<span class="mp-week-badge">${wTasks.length} tasks</span>`:''}
-          </div>
-          <span class="mp-week-arrow ${isOpen?'open':''}">▶</span>
-        </div>`;
-
-      if(isOpen) {
-        html += `<div class="mp-days">`;
-        days.forEach((day, di) => {
-          const ds = this._dateStr(day);
-          const isToday = ds === today;
-          const isPast  = ds < today;
-          const dayTasks = allTasks.filter(t=>t.dueDate===ds);
-          const shown = dayTasks.slice(0,3);
-          const extra = dayTasks.length - shown.length;
-
-          const chipsHTML = shown.map(t=>`
-            <div class="mp-chip p${t.priority[0]} ${t.status==='completed'?'done':''}"
-              draggable="true"
-              data-tid="${t.id}"
-              ondragstart="MP.onDragStart(event,'${t.id}')"
-              ondragend="MP.onDragEnd(event)"
-              title="${esc(t.title)}">
-              <span class="mp-chip-txt">${esc(t.title)}</span>
-              <span class="mp-chip-del" onclick="event.stopPropagation();MP.unassign('${t.id}')" title="Remove date">×</span>
-            </div>`).join('');
-
-          html += `<div class="mp-day ${isToday?'today':''} ${isPast&&!isToday?'past':''}"
-            id="mp-day-${ds}"
-            ondragover="MP.onDragOver(event,'${ds}')"
-            ondragleave="MP.onDragLeave(event)"
-            ondrop="MP.onDrop(event,'${ds}')">
-            <div class="mp-day-hd">
-              <div>
-                <div class="mp-day-name">${dayNames[di]}</div>
-                <div class="mp-day-num">${day.getDate()}</div>
-              </div>
-              <button class="mp-add-btn" onclick="MP.openPicker('${ds}')" title="Assign task">+</button>
-            </div>
-            ${chipsHTML}
-            ${extra>0?`<div class="mp-more" onclick="MP.openPicker('${ds}')">+${extra} more</div>`:''}
-          </div>`;
-        });
-        html += `</div>`; // .mp-days
-      }
-
-      html += `</div>`; // .mp-week
-    });
-
-    html += `</div>`;
-    el.innerHTML = html;
-  },
-
-  prevMonth() { this._offset--; this.render(); },
-  nextMonth() { this._offset++; this.render(); },
-
-  toggleWeek(wi) {
-    if(this._expandedWeeks.has(wi)) this._expandedWeeks.delete(wi);
-    else this._expandedWeeks.add(wi);
-    this.render();
-  },
-
-  scrollToToday() {
-    this._offset = 0;
-    this._expandedWeeks = new Set([0,1,2,3]);
-    this.render();
-    setTimeout(()=>{
-      const el = document.querySelector('.mp-day.today');
-      if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
-    }, 100);
-  },
-
-  /* ── drag & drop ── */
-  onDragStart(e, taskId) {
-    this._dragTaskId = taskId;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', taskId);
-    setTimeout(()=>{ const el=e.target; if(el) el.classList.add('dragging'); }, 0);
-  },
-
-  onDragEnd(e) {
-    document.querySelectorAll('.mp-chip.dragging').forEach(el=>el.classList.remove('dragging'));
-    document.querySelectorAll('.mp-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
-    this._dragTaskId = null;
-  },
-
-  onDragOver(e, dateStr) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const cell = document.getElementById('mp-day-'+dateStr);
-    if(cell) cell.classList.add('drag-over');
-  },
-
-  onDragLeave(e) {
-    // Only remove if actually leaving the cell (not entering a child)
-    const cell = e.currentTarget;
-    if(cell && !cell.contains(e.relatedTarget)) cell.classList.remove('drag-over');
-  },
-
-  onDrop(e, dateStr) {
-    e.preventDefault();
-    const tid = this._dragTaskId || e.dataTransfer.getData('text/plain');
-    if(!tid) return;
-    TM.update(tid, {dueDate: dateStr});
-    toast(`📌 Task scheduled for ${dateStr}`,'s',2000);
-    this.render();
-    refreshAll();
-  },
-
-  unassign(taskId) {
-    TM.update(taskId, {dueDate: null});
-    this.render();
-    refreshAll();
-    toast('Date removed','',1500);
-  },
-
-  /* ── picker ── */
-  openPicker(dateStr) {
-    this._pickerDate = dateStr;
-    this._pickerSearch = '';
-    const d = new Date(dateStr+'T12:00:00');
-    const lbl = d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
-    document.getElementById('mp-picker-date-lbl').textContent = lbl;
-    document.getElementById('mp-picker-search').value = '';
-    document.getElementById('mp-picker-bk').classList.add('on');
-    this.filterPicker('');
-    setTimeout(()=>document.getElementById('mp-picker-search').focus(), 80);
-  },
-
-  closePicker() {
-    document.getElementById('mp-picker-bk').classList.remove('on');
-    this._pickerDate = null;
-  },
-
-  filterPicker(q) {
-    this._pickerSearch = (q||'').toLowerCase();
-    const el = document.getElementById('mp-picker-list');
-    if(!el) return;
-    const allTasks = DB.getTasks().filter(t=>!t.parentId && t.status!=='completed');
-    const filtered = allTasks.filter(t=>
-      !this._pickerSearch || t.title.toLowerCase().includes(this._pickerSearch)
-    );
-
-    if(!filtered.length) {
-      el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">No tasks found</div>`;
-      return;
-    }
-
-    const prioColor = {high:'var(--red)',medium:'var(--accent)',low:'var(--tm)'};
-    el.innerHTML = filtered.map(t=>{
-      const assigned = t.dueDate === this._pickerDate;
-      const otherDate = t.dueDate && t.dueDate !== this._pickerDate ? t.dueDate : null;
-      return `<div class="mp-picker-item ${assigned?'assigned':''}" onclick="MP.assignTask('${t.id}')">
-        <div class="mp-picker-dot" style="background:${prioColor[t.priority]||'var(--tm)'}"></div>
-        <div class="mp-picker-name">${esc(t.title)}</div>
-        <div class="mp-picker-meta">${assigned?'✓ assigned':otherDate?'📅 '+otherDate:t.level}</div>
-      </div>`;
-    }).join('');
-  },
-
-  assignTask(taskId) {
-    if(!this._pickerDate) return;
-    const existing = DB.getTasks().find(t=>t.id===taskId);
-    const wasDate = existing?.dueDate;
-    TM.update(taskId, {dueDate: this._pickerDate});
-    toast(`📌 Task assigned to ${this._pickerDate}`,'s',2000);
-    this.closePicker();
-    this.render();
-    refreshAll();
-  },
-};
 
 // ═══════════════════════════════════════════
 // RENDER DASHBOARD
@@ -2466,19 +2535,36 @@ function renderDashboard() {
   if(msFocus) msFocus.textContent = fmtDur(focus) || '0m';
   if(msStreak) msStreak.textContent = streak.count;
 
-  // Render Today's Tasks — sorted by due date/time, max 5
+  // Render Today's Tasks — urgency sort: overdue → time-passed → upcoming → daily
   const allTasks = DB.getTasks();
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+
   const todayTasks = allTasks.filter(t =>
     !t.parentId &&
-    (t.dueDate === todayStr() || t.level === 'daily') &&
-    t.status !== 'completed'
-  ).sort((a, b) => {
-    // Sort by dueDate asc, then dueTime asc, then createdAt asc
-    const da = a.dueDate || '9999-99-99', db = b.dueDate || '9999-99-99';
-    if(da !== db) return da < db ? -1 : 1;
-    const ta = a.dueTime || '99:99', tb = b.dueTime || '99:99';
-    if(ta !== tb) return ta < tb ? -1 : 1;
-    return (a.createdAt||0) - (b.createdAt||0);
+    t.status !== 'completed' &&
+    (isOverdue(t.dueDate) || t.dueDate === todayStr() || t.level === 'daily')
+  );
+
+  // Urgency score: 0=overdue, 1=time passed today, 2=due today (future time), 3=daily (no specific date)
+  const urgency = t => {
+    if(isOverdue(t.dueDate)) return 0;
+    if(t.dueDate === todayStr()) {
+      if(t.dueTime) {
+        const [h,m] = t.dueTime.split(':').map(Number);
+        return (h*60+m) < nowMin ? 1 : 2;
+      }
+      return 2;
+    }
+    return 3;
+  };
+
+  todayTasks.sort((a,b) => {
+    const ua=urgency(a), ub=urgency(b);
+    if(ua!==ub) return ua-ub;
+    const ta=a.dueTime||'99:99', tb=b.dueTime||'99:99';
+    if(ta!==tb) return ta<tb?-1:1;
+    return (a.createdAt||0)-(b.createdAt||0);
   });
 
   const todayList = document.getElementById('d-today-list');
