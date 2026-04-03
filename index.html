@@ -1199,9 +1199,9 @@ function toggleTheme() {
 // UTILS
 // ═══════════════════════════════════════════
 const uuid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,9);
-const todayStr = () => new Date().toISOString().split('T')[0];
-const daysAgoStr = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; };
-const isToday = ts => new Date(ts).toISOString().split('T')[0] === todayStr();
+const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const daysAgoStr = n => { const d=new Date(); d.setDate(d.getDate()-n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const isToday = ts => { const d=new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === todayStr(); };
 const isThisWeek = ts => (Date.now()-ts) < 7*864e5;
 const isOverdue = (due) => due && due < todayStr();
 const fmtTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
@@ -1799,27 +1799,43 @@ const TM = {
     };
   },
 
-  // ── RECURRING: Reset tasks that are due again
+  // ── RECURRING: Reset tasks that are due again + advance dueDate
   handleRecurring() {
     const tasks = DB.getTasks();
     const today = todayStr();
     let changed = false;
 
     tasks.forEach(t => {
-      if(t.recurrence==='none' || t.status!=='completed' || !t.lastCompletedDate) return;
-      let reset = false;
-      if(t.recurrence==='daily' && t.lastCompletedDate < today) reset=true;
-      else if(t.recurrence==='weekly') {
-        const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
-        if(diff >= 7) reset=true;
-      } else if(t.recurrence==='biweekly') {
-        const diff = (new Date(today)-new Date(t.lastCompletedDate)) / 864e5;
-        if(diff >= 14) reset=true;
-      } else if(t.recurrence==='monthly') {
-        const l=new Date(t.lastCompletedDate), n=new Date(today);
-        if(n.getMonth()!==l.getMonth()||n.getFullYear()!==l.getFullYear()) reset=true;
+      if(t.recurrence === 'none') return;
+      // If task is completed AND it was completed before today → reset it
+      if(t.status === 'completed' && t.lastCompletedDate && t.lastCompletedDate < today) {
+        let shouldReset = false;
+        if(t.recurrence === 'daily') {
+          shouldReset = true; // always reset daily if completed before today
+        } else if(t.recurrence === 'weekly') {
+          const diff = (new Date(today) - new Date(t.lastCompletedDate)) / 864e5;
+          if(diff >= 7) shouldReset = true;
+        } else if(t.recurrence === 'biweekly') {
+          const diff = (new Date(today) - new Date(t.lastCompletedDate)) / 864e5;
+          if(diff >= 14) shouldReset = true;
+        } else if(t.recurrence === 'monthly') {
+          const l = new Date(t.lastCompletedDate), n = new Date(today);
+          if(n.getMonth() !== l.getMonth() || n.getFullYear() !== l.getFullYear()) shouldReset = true;
+        }
+        if(shouldReset) {
+          t.status = 'pending';
+          t.lastCompletedDate = null;
+          // Advance dueDate to today for recurring tasks that had a date
+          if(t.dueDate && t.dueDate < today) t.dueDate = today;
+          changed = true;
+        }
       }
-      if(reset) { t.status='pending'; t.lastCompletedDate=null; changed=true; }
+      // If task is pending/in-progress but its dueDate is in the past → advance to today
+      // (handles case where app was closed overnight)
+      if(t.status !== 'completed' && t.dueDate && t.dueDate < today && t.recurrence !== 'none') {
+        t.dueDate = today;
+        changed = true;
+      }
     });
     if(changed) DB.saveTasks(tasks);
   },
@@ -3843,6 +3859,37 @@ document.addEventListener('DOMContentLoaded', () => {
   NM.init();
   renderDashboard();
   checkPlanning();
+
+  // ── Midnight tick: fires exactly at 00:00 each night ──
+  function scheduleMidnightTick() {
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 2).getTime() - now.getTime();
+    setTimeout(() => {
+      // New day — reset recurring tasks and refresh
+      document.getElementById('sb-date').textContent = new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+      TM.handleRecurring();
+      NM.checkOverdueAtDayStart();
+      refreshAll();
+      toast('🌅 New day — recurring tasks reset!','s', 4000);
+      scheduleMidnightTick(); // schedule next midnight
+    }, msUntilMidnight);
+  }
+  scheduleMidnightTick();
+
+  // ── Visibility change: when user returns to tab after midnight ──
+  let _lastDate = todayStr();
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden) return;
+    const currentDate = todayStr();
+    if(currentDate !== _lastDate) {
+      _lastDate = currentDate;
+      document.getElementById('sb-date').textContent = new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+      TM.handleRecurring();
+      NM.checkOverdueAtDayStart();
+      refreshAll();
+      toast('🌅 New day — recurring tasks reset!','s', 4000);
+    }
+  });
 
   // Resize — redraw charts if analytics visible
   window.addEventListener('resize', ()=>{
