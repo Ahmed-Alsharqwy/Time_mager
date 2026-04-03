@@ -638,6 +638,31 @@ canvas{width:100%!important;display:block;max-width:100%}
   .hb-stats-row { grid-template-columns: repeat(3,1fr); }
   .hb-tips-wrap { grid-template-columns: 1fr; }
 }
+
+/* ── PRAYER TABLE ────────────────────────── */
+.prayer-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--r); border: 1px solid var(--b1); }
+.prayer-table { width: 100%; border-collapse: collapse; min-width: 280px; }
+.prayer-table th, .prayer-table td { padding: 0; }
+.pr-th-name { font-size: 10px; font-weight: 700; color: var(--td); text-transform: uppercase; letter-spacing: .5px; padding: 8px 10px; text-align: right; background: var(--s2); border-bottom: 1px solid var(--b1); width: 72px; }
+.pr-th-col { font-size: 9px; font-weight: 700; color: var(--td); text-align: center; padding: 8px 4px; background: var(--s2); border-bottom: 1px solid var(--b1); letter-spacing: .2px; min-width: 56px; }
+.pr-th-masjid { color: var(--green); }
+.pr-th-jamaa  { color: var(--blue); }
+.pr-th-waqt   { color: var(--accent); }
+.pr-th-qadaa  { color: var(--red); }
+.prayer-tr { border-bottom: 1px solid var(--b1); transition: background var(--ease); }
+.prayer-tr:last-child { border-bottom: none; }
+.prayer-tr.pr-done { background: rgba(52,211,153,.05); }
+.pr-name-cell { display: flex; align-items: center; gap: 5px; padding: 8px 10px; }
+.pr-icon { font-size: 14px; line-height: 1; flex-shrink: 0; }
+.pr-name-txt { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.pr-col-cell { text-align: center; vertical-align: middle; padding: 6px 4px; }
+.pr-cb { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--b2); background: var(--s2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: all var(--ease); color: transparent; }
+.pr-cb:hover { border-color: var(--b2); transform: scale(1.1); }
+.pr-cb.checked { color: #fff; }
+.pr-cb.pr-masjid.checked { background: var(--green);  border-color: var(--green); }
+.pr-cb.pr-jamaa.checked  { background: var(--blue);   border-color: var(--blue); }
+.pr-cb.pr-waqt.checked   { background: var(--accent); border-color: var(--accent); color: #000; }
+.pr-cb.pr-qadaa.checked  { background: var(--red);    border-color: var(--red); }
 </style>
 <body>
 
@@ -2272,6 +2297,12 @@ const HABITS = {
     {id:'maghrib',name:'المغرب',  icon:'🌅'},
     {id:'isha',   name:'العشاء',  icon:'🌙'},
   ],
+  PRAYER_COLS: [
+    {id:'masjid', label:'في المسجد', color:'var(--green)'},
+    {id:'jamaa',  label:'جماعة',     color:'var(--blue)'},
+    {id:'waqt',   label:'على وقتها', color:'var(--accent)'},
+    {id:'qadaa',  label:'قضاء',      color:'var(--red)'},
+  ],
   DHIKR: [
     {id:'sub',  text:'سبحان الله',    target:33},
     {id:'hamd', text:'الحمد لله',     target:33},
@@ -2279,18 +2310,33 @@ const HABITS = {
   ],
   WATER_TARGET: 8,
 
+  _defaultPrayers() {
+    const p = {};
+    this.PRAYERS.forEach(pr => {
+      p[pr.id] = {masjid:false, jamaa:false, waqt:false, qadaa:false};
+    });
+    return p;
+  },
+
   _getState() {
     const meta = DB.getMeta();
     const today = todayStr();
     if(!meta.habits || meta.habits.date !== today) {
       meta.habits = {
         date: today,
-        prayers: {fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false},
+        prayers: this._defaultPrayers(),
         water: 0,
         dhikr: {sub:0, hamd:0, akbar:0},
       };
       DB.saveMeta(meta);
     }
+    // Migrate old boolean format → new object format
+    const prayers = meta.habits.prayers;
+    this.PRAYERS.forEach(pr => {
+      if(typeof prayers[pr.id] === 'boolean') {
+        prayers[pr.id] = {masjid:false, jamaa:false, waqt:prayers[pr.id], qadaa:false};
+      }
+    });
     return meta.habits;
   },
 
@@ -2300,20 +2346,32 @@ const HABITS = {
     DB.saveMeta(meta);
   },
 
-  togglePrayer(id) {
+  togglePrayerCol(prayerId, colId) {
     const s = this._getState();
-    s.prayers[id] = !s.prayers[id];
+    const pr = s.prayers[prayerId];
+    // Qadaa is mutually exclusive with the other 3; others can stack
+    if(colId === 'qadaa') {
+      pr.qadaa = !pr.qadaa;
+      if(pr.qadaa) { pr.masjid=false; pr.jamaa=false; pr.waqt=false; }
+    } else {
+      pr[colId] = !pr[colId];
+      if(pr[colId]) pr.qadaa = false;
+    }
     this._save(s);
     renderHabits();
-    const done = Object.values(s.prayers).filter(Boolean).length;
-    if(done===5) toast('🤲 ما شاء الله! أتممت الصلوات الخمس 🌙','s',4000);
+    // Check all prayed
+    const allDone = this.PRAYERS.every(p=>{
+      const x = s.prayers[p.id];
+      return x.waqt||x.jamaa||x.masjid||x.qadaa;
+    });
+    if(allDone) toast('🤲 ما شاء الله! أتممت الصلوات الخمس 🌙','s',4000);
   },
 
   tapDhikr(id) {
     const s = this._getState();
     const t = this.DHIKR.find(d=>d.id===id);
     if(!t) return;
-    if(s.dhikr[id] >= t.target) { s.dhikr[id]=0; } // reset on overflow
+    if(s.dhikr[id] >= t.target) { s.dhikr[id]=0; }
     else { s.dhikr[id]++; }
     this._save(s);
     renderHabits();
@@ -2335,15 +2393,32 @@ function renderHabits() {
   if(!el) return;
   const s = HABITS._getState();
 
-  // Prayers
-  const prayerDone = Object.values(s.prayers).filter(Boolean).length;
-  const prayerPct = Math.round((prayerDone/5)*100);
-  const prayersHTML = HABITS.PRAYERS.map(p=>`
-    <div class="prayer-btn ${s.prayers[p.id]?'done':''}" onclick="HABITS.togglePrayer('${p.id}')" title="${p.name}">
-      <div class="prayer-icon">${p.icon}</div>
-      <div class="prayer-name">${p.name}</div>
-      <div class="prayer-check">${s.prayers[p.id]?'✓':''}</div>
-    </div>`).join('');
+  // Count prayed (any column checked = prayed)
+  const prayersDone = HABITS.PRAYERS.filter(p=>{
+    const x = s.prayers[p.id]||{};
+    return x.waqt||x.jamaa||x.masjid||x.qadaa;
+  }).length;
+  const prayerPct = Math.round((prayersDone/5)*100);
+
+  // Prayer table rows
+  const rowsHTML = HABITS.PRAYERS.map(p=>{
+    const pr = s.prayers[p.id]||{};
+    const anyDone = pr.waqt||pr.jamaa||pr.masjid||pr.qadaa;
+    return `<tr class="prayer-tr ${anyDone?'pr-done':''}">
+      <td class="pr-name-cell">
+        <span class="pr-icon">${p.icon}</span>
+        <span class="pr-name-txt">${p.name}</span>
+      </td>
+      ${HABITS.PRAYER_COLS.map(col=>`
+        <td class="pr-col-cell">
+          <button class="pr-cb ${pr[col.id]?'checked':''} pr-${col.id}"
+            onclick="HABITS.togglePrayerCol('${p.id}','${col.id}')"
+            title="${col.label}">
+            ${pr[col.id]?'✓':''}
+          </button>
+        </td>`).join('')}
+    </tr>`;
+  }).join('');
 
   // Water
   const waterHTML = Array.from({length:HABITS.WATER_TARGET},(_,i)=>`
@@ -2355,7 +2430,7 @@ function renderHabits() {
     const count = s.dhikr[d.id]||0;
     const done = count>=d.target;
     return `<div class="dhikr-row">
-      <div class="dhikr-tap ${done?'done':''}" onclick="HABITS.tapDhikr('${d.id}')" title="اضغط للعد">
+      <div class="dhikr-tap ${done?'done':''}" onclick="HABITS.tapDhikr('${d.id}')">
         <span class="dhikr-text">${d.text}</span>
         <span class="dhikr-num">${count}<span style="font-size:9px;color:var(--tm);font-weight:400">/${d.target}</span></span>
       </div>
@@ -2363,15 +2438,28 @@ function renderHabits() {
   }).join('');
 
   el.innerHTML = `<div class="habits-card">
+
+    <!-- PRAYER TABLE -->
     <div>
-      <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
+      <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span>🕌 الصلوات</span>
-        <span style="font-size:10px;font-family:var(--mono);color:${prayerDone===5?'var(--green)':'var(--accent)'};">${prayerDone}/5</span>
+        <span style="font-size:11px;font-family:var(--mono);font-weight:700;color:${prayersDone===5?'var(--green)':'var(--accent)'};">${prayersDone}/5 ✓</span>
       </div>
-      <div class="prayers-grid">${prayersHTML}</div>
-      <div class="pb" style="margin-top:7px;height:3px"><div class="pbf g" style="width:${prayerPct}%"></div></div>
+      <div class="prayer-table-wrap">
+        <table class="prayer-table">
+          <thead>
+            <tr>
+              <th class="pr-th-name">الصلاة</th>
+              ${HABITS.PRAYER_COLS.map(c=>`<th class="pr-th-col pr-th-${c.id}">${c.label}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+      </div>
+      <div class="pb" style="margin-top:8px;height:4px"><div class="pbf g" style="width:${prayerPct}%"></div></div>
     </div>
 
+    <!-- WATER -->
     <div>
       <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
         <span>💧 الماء</span>
@@ -2380,6 +2468,7 @@ function renderHabits() {
       <div class="water-glasses">${waterHTML}</div>
     </div>
 
+    <!-- DHIKR -->
     <div>
       <div class="hab-section-lbl" style="display:flex;justify-content:space-between;align-items:center">
         <span>📿 الأذكار</span>
@@ -2491,7 +2580,11 @@ const MP = {
           const inCurMonth = day.getMonth()===monthStart.getMonth();
           const isToday = ds===today;
           const isPast  = ds<today;
-          const dayTasks = allTasks.filter(t=>t.dueDate===ds);
+          const dayTasks = allTasks.filter(t=>
+            t.dueDate===ds ||
+            // Show recurring daily tasks on today's cell even if no dueDate
+            (isToday && !t.dueDate && !t.parentId && t.recurrence==='daily' && t.status!=='completed')
+          );
           const shown = dayTasks.slice(0,3);
           const extra = dayTasks.length - shown.length;
 
@@ -2768,6 +2861,9 @@ function renderDashboard() {
     (
       isOverdue(t.dueDate) ||
       t.dueDate === td ||
+      // Recurring daily tasks with no dueDate always appear
+      (!t.parentId && t.recurrence === 'daily' && !t.dueDate) ||
+      // level-based daily/biweekly/weekly with no specific date
       (!t.parentId && (t.level === 'daily' || t.level === 'biweekly' || t.level === 'weekly') && !t.dueDate)
     )
   );
