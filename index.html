@@ -663,8 +663,20 @@ canvas{width:100%!important;display:block;max-width:100%}
 .pr-cb.pr-jamaa.checked  { background: var(--blue);   border-color: var(--blue); }
 .pr-cb.pr-waqt.checked   { background: var(--accent); border-color: var(--accent); color: #000; }
 .pr-cb.pr-qadaa.checked  { background: var(--red);    border-color: var(--red); }
+
+/* ── Drag-ready chip indicator ── */
+.mp-chip[data-draggable] { cursor: default; }
+.mp-chip.drag-ready { cursor: grab; outline: 2px solid var(--accent); outline-offset: 1px; }
+.mp-chip.drag-ready:active { cursor: grabbing; }
+
+/* ── Prayer stats grid ── */
+.prayer-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+@media (max-width:480px) { .prayer-stats-grid { grid-template-columns: repeat(2,1fr); } }
+
 </style>
+</head>
 <body>
+
 
 <!-- ════ LOGIN OVERLAY ════ -->
 <div id="login-overlay">
@@ -945,6 +957,9 @@ canvas{width:100%!important;display:block;max-width:100%}
       <!-- Habit list -->
       <div id="hb-list" style="display:flex;flex-direction:column;gap:10px"></div>
 
+      <!-- Prayer Stats -->
+      <div id="hb-prayer-stats"></div>
+
       <!-- Tips -->
       <div id="hb-tips"></div>
 
@@ -1195,10 +1210,28 @@ canvas{width:100%!important;display:block;max-width:100%}
 <!-- ════════════════════════════════════════════════
      JAVASCRIPT — NEXUS DISCIPLINE OS v2.0
 ════════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 <script>
+'use strict';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
+  authDomain: "timemanger-8226f.firebaseapp.com",
+  projectId: "timemanger-8226f",
+  storageBucket: "timemanger-8226f.firebasestorage.app",
+  messagingSenderId: "613624657906",
+  appId: "1:613624657906:web:c2319e2a08aab6485b1d6b"
+};
+firebase.initializeApp(firebaseConfig);
+const firestore = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+let docRef = null, _unsubSnapshot = null, currentUserId = null;
+
 'use strict';
 
 // ═══════════════════════════════════════════
@@ -1221,6 +1254,8 @@ function toggleTheme() {
 })();
 
 // ═══════════════════════════════════════════
+
+
 // UTILS
 // ═══════════════════════════════════════════
 const uuid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,9);
@@ -1249,26 +1284,12 @@ function toast(msg, type='', dur=2800) {
 }
 
 // ═══════════════════════════════════════════
+
+
 // DATABASE / FIREBASE SYNC
 // ═══════════════════════════════════════════
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBGfxSPbkfQBQ29cT1Hh2qrU9ZlYsL1i8g",
-  authDomain: "timemanger-8226f.firebaseapp.com",
-  projectId: "timemanger-8226f",
-  storageBucket: "timemanger-8226f.firebasestorage.app",
-  messagingSenderId: "613624657906",
-  appId: "1:613624657906:web:c2319e2a08aab6485b1d6b",
-  measurementId: "G-N22HP52JS5"
-};
-firebase.initializeApp(firebaseConfig);
-const firestore = firebase.firestore();
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-let docRef = null;
-let _unsubSnapshot = null;
-let currentUserId = null;
 
 const DB = {
   _state: {
@@ -1335,6 +1356,34 @@ const DB = {
   }
 };
 
+
+
+// ═══════════════════════════════════════════
+// AUTH — Firebase persistence + 3-hour revalidation
+// ═══════════════════════════════════════════
+
+// Set persistence to LOCAL so login survives browser restart
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.warn('Persistence:', e));
+
+let _revalidateTimer = null;
+
+function _startRevalidateTimer() {
+  clearInterval(_revalidateTimer);
+  // Every 3 hours, silently re-check the token (Firebase auto-refreshes internally)
+  _revalidateTimer = setInterval(async () => {
+    const user = auth.currentUser;
+    if(user) {
+      try {
+        await user.getIdToken(true); // force refresh
+        console.log('[NEXUS] Token revalidated');
+      } catch(e) {
+        console.warn('[NEXUS] Revalidation failed, logging out:', e.message);
+        auth.signOut();
+      }
+    }
+  }, 3 * 60 * 60 * 1000); // 3 hours
+}
+
 auth.onAuthStateChanged(user => {
   const loginOverlay = document.getElementById('login-overlay');
   if (user) {
@@ -1343,13 +1392,14 @@ auth.onAuthStateChanged(user => {
     if (errEl) errEl.style.display = 'none';
     currentUserId = user.uid;
     docRef = firestore.collection('users').doc(user.uid);
-    
+    _startRevalidateTimer();
+
     DB.initLocal();
     if (typeof refreshAll === 'function') refreshAll();
-    
+
     let _fbFirstLoad = true;
     if (_unsubSnapshot) _unsubSnapshot();
-    
+
     _unsubSnapshot = docRef.onSnapshot(doc => {
       if (doc.exists) {
         const data = doc.data();
@@ -1357,22 +1407,19 @@ auth.onAuthStateChanged(user => {
           DB._state[k] = data[k];
           try{ localStorage.setItem(`${currentUserId}_${k}`,JSON.stringify(data[k])); }catch(e){}
         });
-        if (!_fbFirstLoad && typeof refreshAll === 'function') {
-          refreshAll();
-        } else if (_fbFirstLoad && typeof refreshAll === 'function') {
-           refreshAll();
-        }
+        if (!_fbFirstLoad && typeof refreshAll === 'function') refreshAll();
+        else if (_fbFirstLoad && typeof refreshAll === 'function') refreshAll();
       } else if (_fbFirstLoad) {
         docRef.set(DB._state).catch(e => console.error("Initial push failed", e));
       }
       _fbFirstLoad = false;
-      
       seedMyCustomTasks();
       if (typeof refreshAll === 'function') refreshAll();
     });
   } else {
     currentUserId = null;
     docRef = null;
+    clearInterval(_revalidateTimer);
     if (_unsubSnapshot) { _unsubSnapshot(); _unsubSnapshot = null; }
     DB.clearState();
     if (loginOverlay) loginOverlay.style.display = 'flex';
@@ -1385,201 +1432,59 @@ function showAuthError(msg) {
 }
 
 function _authSetLoading(loading) {
-  const si = document.getElementById('btn-signin');
-  const su = document.getElementById('btn-signup');
-  if(!si || !su) return;
-  if(loading) {
-    si.innerHTML = '<span class="spinner"></span> Signing in...';
-    su.innerHTML = '<span class="spinner"></span>';
+  const si = document.getElementById('btn-signin'), su = document.getElementById('btn-signup');
+  if(!si||!su) return;
+  if(loading){
+    si.innerHTML='<span class="spinner"></span> Signing in...'; su.innerHTML='<span class="spinner"></span>';
     si.classList.add('btn-loading'); su.classList.add('btn-loading');
   } else {
-    si.innerHTML = 'Sign In'; su.innerHTML = 'Sign Up';
+    si.innerHTML='Sign In'; su.innerHTML='Sign Up';
     si.classList.remove('btn-loading'); su.classList.remove('btn-loading');
   }
 }
 
 function _friendlyError(err) {
-  const code = err.code || '';
-  if(code === 'auth/user-not-found')       return '❌ No account with this email. Click Sign Up to create one.';
-  if(code === 'auth/wrong-password')        return '❌ Wrong password. Please try again.';
-  if(code === 'auth/invalid-email')         return '❌ Invalid email address format.';
-  if(code === 'auth/email-already-in-use')  return '❌ Email already registered. Click Sign In instead.';
-  if(code === 'auth/weak-password')         return '❌ Password too weak — minimum 6 characters.';
-  if(code === 'auth/too-many-requests')     return '❌ Too many attempts. Please wait a few minutes and try again.';
-  if(code === 'auth/network-request-failed')return '❌ Network error. Check your internet connection.';
-  if(code === 'auth/invalid-credential')    return '❌ Wrong email or password. Try again or click Sign Up.';
-  if(code === 'auth/operation-not-allowed') return '❌ Email/Password sign-in is not enabled. Please use Google Sign In or contact the admin.';
-  return '❌ ' + (err.message || 'Unknown error occurred.');
+  const code=err.code||'';
+  if(code==='auth/user-not-found')        return '❌ No account with this email. Click Sign Up to create one.';
+  if(code==='auth/wrong-password')         return '❌ Wrong password. Please try again.';
+  if(code==='auth/invalid-email')          return '❌ Invalid email address format.';
+  if(code==='auth/email-already-in-use')   return '❌ Email already registered. Click Sign In instead.';
+  if(code==='auth/weak-password')          return '❌ Password too weak — minimum 6 characters.';
+  if(code==='auth/too-many-requests')      return '❌ Too many attempts. Please wait a few minutes.';
+  if(code==='auth/network-request-failed') return '❌ Network error. Check your internet connection.';
+  if(code==='auth/invalid-credential')     return '❌ Wrong email or password.';
+  if(code==='auth/operation-not-allowed')  return '❌ Email/Password sign-in is not enabled.';
+  return '❌ '+(err.message||'Unknown error occurred.');
 }
 
 function loginWithEmail() {
-  const e = document.getElementById('auth-email').value.trim();
-  const p = document.getElementById('auth-pass').value;
-  const errEl = document.getElementById('auth-error');
-  if(errEl) errEl.style.display = 'none';
-  if(!e || !p) { showAuthError('⚠️ Please enter your email and password.'); return; }
+  const e=document.getElementById('auth-email').value.trim(), p=document.getElementById('auth-pass').value;
+  const errEl=document.getElementById('auth-error'); if(errEl) errEl.style.display='none';
+  if(!e||!p){showAuthError('⚠️ Please enter your email and password.');return;}
   _authSetLoading(true);
-  auth.signInWithEmailAndPassword(e, p)
-    .catch(err => {
-      console.error("Login Error", err);
-      showAuthError(_friendlyError(err));
-      _authSetLoading(false);
-    });
+  auth.signInWithEmailAndPassword(e,p).catch(err=>{showAuthError(_friendlyError(err));_authSetLoading(false);});
 }
 
 function signupWithEmail() {
-  const e = document.getElementById('auth-email').value.trim();
-  const p = document.getElementById('auth-pass').value;
-  const errEl = document.getElementById('auth-error');
-  if(errEl) errEl.style.display = 'none';
-  if(!e || !p) { showAuthError('⚠️ Please enter your email and password.'); return; }
-  if(p.length < 6) { showAuthError('⚠️ Password must be at least 6 characters.'); return; }
+  const e=document.getElementById('auth-email').value.trim(), p=document.getElementById('auth-pass').value;
+  const errEl=document.getElementById('auth-error'); if(errEl) errEl.style.display='none';
+  if(!e||!p){showAuthError('⚠️ Please enter your email and password.');return;}
+  if(p.length<6){showAuthError('⚠️ Password must be at least 6 characters.');return;}
   _authSetLoading(true);
-  auth.createUserWithEmailAndPassword(e, p)
-    .catch(err => {
-      console.error("Signup Error", err);
-      showAuthError(_friendlyError(err));
-      _authSetLoading(false);
-    });
+  auth.createUserWithEmailAndPassword(e,p).catch(err=>{showAuthError(_friendlyError(err));_authSetLoading(false);});
 }
 
 function loginWithGoogle() {
-  const errEl = document.getElementById('auth-error');
-  if(errEl) errEl.style.display = 'none';
-  auth.signInWithPopup(googleProvider).catch(error => {
-    console.error("Google Login failed", error);
-    showAuthError(_friendlyError(error));
-  });
+  const errEl=document.getElementById('auth-error'); if(errEl) errEl.style.display='none';
+  auth.signInWithPopup(googleProvider).catch(error=>showAuthError(_friendlyError(error)));
 }
 
 function logout() {
-  auth.signOut().then(() => {
-    if (typeof toast === 'function') toast("Logged out successfully", "s");
-  }).catch(error => {
-    if (typeof toast === 'function') toast("Logout failed: " + error.message, "e");
-  });
+  auth.signOut().then(()=>{ if(typeof toast==='function') toast('Logged out successfully','s'); })
+    .catch(error=>{ if(typeof toast==='function') toast('Logout failed: '+error.message,'e'); });
 }
 
-function seedMyCustomTasks() {
-  if (!currentUserId) return;
-  
-  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v1`)) {
-    const g1 = GM.create({
-      title: 'إنهاء جميع المحاضرات',
-      description: 'إنهاء 6 مواد دراسية، كل مادة 7 محاضرات',
-      color: 'blue'
-    });
 
-    const subjects = ['CCNA 3', 'Network programing', 'Embedded systems', 'software enginering', 'distributed', 'ccna security'];
-    subjects.forEach(sub => {
-      const parentTask = TM.create({
-        title: sub,
-        goalId: g1.id,
-        level: 'monthly',
-        priority: 'high'
-      });
-      for(let i=1; i<=7; i++) {
-        TM.create({
-          title: `محاضرة ${i}`,
-          parentId: parentTask.id,
-          goalId: g1.id,
-          level: 'weekly',
-          priority: 'medium',
-          estimatedTime: 120
-        });
-      }
-    });
-    localStorage.setItem(`${currentUserId}_custom_seeded_v1`, 'true');
-  }
-
-  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v5`)) {
-    const oldTargets = DB.getGoals().filter(g => 
-      g.title.includes('توفير') || 
-      g.title.includes('احترافي في الجيم') || 
-      g.title.includes('الجيم') ||
-      g.title.includes('العبادات')
-    );
-    oldTargets.forEach(g => {
-      GM.delete(g.id);
-      DB.getTasks().forEach(t => { if(t.goalId === g.id) TM.delete(t.id); });
-    });
-
-    // 1. Savings
-    const g2 = GM.create({
-      title: 'توفير 2000 جنيه شهرياً',
-      description: 'تحويش 2000 جنيه شهرياً مقسمة إلى مهام يومية (65 جنيه)',
-      color: 'green', metric: 'جنيه', target: 2000, unit: 'جنيه'
-    });
-    const svParent = TM.create({
-      title: 'توفير شهر (1)', goalId: g2.id, level: 'monthly', priority: 'high'
-    });
-    for(let i=1; i<=30; i++) {
-      TM.create({
-        title: `تحويش 65 ج (اليوم ${i})`, parentId: svParent.id, goalId: g2.id, level: 'daily', priority: 'medium'
-      });
-    }
-
-    // 2. Gym
-    const d = new Date(); d.setMonth(d.getMonth() + 3);
-    const g3 = GM.create({
-      title: 'الوصول لمستوى احترافي في الجيم',
-      description: 'الالتزام ببرنامج 3 شهور، مقسم لشهور وأيام',
-      dueDate: d.toISOString().split('T')[0], color: 'amber'
-    });
-    for(let m=1; m<=3; m++) {
-      const gymMon = TM.create({
-        title: `خطة الجيم (الشهر ${m})`, goalId: g3.id, level: 'monthly', priority: 'high'
-      });
-      for(let day=1; day<=30; day++) {
-        TM.create({
-          title: `تمرين (اليوم ${day})`, parentId: gymMon.id, goalId: g3.id, level: 'daily', priority: 'high', estimatedTime: 90
-        });
-      }
-    }
-
-    // 3. Worship
-    const g4 = GM.create({
-      title: 'العبادات اليومية',
-      description: 'قراءة الورد، الأذكار، والصدقة',
-      color: 'purple'
-    });
-    const wRrd = TM.create({ title: 'ختمة القرآن (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
-    const wZkr = TM.create({ title: 'المواظبة على الأذكار (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
-    const wSad = TM.create({ title: 'الصدقة المكتوبة (الشهر 1)', goalId: g4.id, level: 'monthly', priority: 'high' });
-
-    for(let i=1; i<=30; i++) {
-        TM.create({ title: `الورد القرآني (اليوم ${i})`, parentId: wRrd.id, goalId: g4.id, level: 'daily', priority: 'high' });
-        TM.create({ title: `أذكار الصباح والمساء (اليوم ${i})`, parentId: wZkr.id, goalId: g4.id, level: 'daily', priority: 'high' });
-        TM.create({ title: `صدقة 5 ج (اليوم ${i})`, parentId: wSad.id, goalId: g4.id, level: 'daily', priority: 'medium' });
-    }
-
-    localStorage.setItem(`${currentUserId}_custom_seeded_v5`, 'true');
-    if (typeof toast === 'function') toast('✅ تم ترتيب المهام بنظام الفرعيات (زي المحاضرات)!', 's', 6000);
-  }
-
-  if (!localStorage.getItem(`${currentUserId}_custom_seeded_v6`)) {
-    const g5 = GM.create({
-      title: 'إتقان اللغة الإنجليزية',
-      description: 'خطة احترافية للتدريب الشامل على المهارات يومياً (استماع، كلمات، تحدث)',
-      color: 'blue'
-    });
-    
-    const eList = TM.create({ title: 'الاستماع الشامل (Listening) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
-    const eVocab = TM.create({ title: 'حفظ كلمات ومراجعة (Vocabulary) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
-    const eSpeak = TM.create({ title: 'التحدث والظل (Speaking) - الشهر 1', goalId: g5.id, level: 'monthly', priority: 'high' });
-
-    for(let i=1; i<=30; i++) {
-        TM.create({ title: `استماع لقطعة/بودكاست (اليوم ${i})`, parentId: eList.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
-        TM.create({ title: `دراسة 5 كلمات وحفظها (اليوم ${i})`, parentId: eVocab.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
-        TM.create({ title: `ممارسة التحدث بصوت عالٍ (اليوم ${i})`, parentId: eSpeak.id, goalId: g5.id, level: 'daily', priority: 'high', estimatedTime: 15 });
-    }
-
-    localStorage.setItem(`${currentUserId}_custom_seeded_v6`, 'true');
-    if (typeof toast === 'function') toast('✅ تم إضافة خطة تعلم الإنجليزية الاحترافية!', 's', 6000);
-  }
-}
-
-// ═══════════════════════════════════════════
 // LOG MANAGER
 // ═══════════════════════════════════════════
 const LM = {
@@ -1898,33 +1803,33 @@ const TM = {
 };
 
 // ═══════════════════════════════════════════
-// FOCUS MANAGER
+
+
+// ═══════════════════════════════════════════
+// FOCUS MANAGER — Background-safe + Wake Lock
 // ═══════════════════════════════════════════
 const FM = {
-  s: { taskId:null, elapsed:0, running:false, interval:null, estimated:0 },
+  s: { taskId:null, elapsed:0, running:false, interval:null, estimated:0, _startTs:null },
+  _wakeLock: null,
 
   load() {
     const saved = DB.getFocusState();
     if(!saved) return;
     this.s = {...saved, interval:null};
-    if(saved.running && saved._savedAt) {
+    if(saved.running && saved._savedAt)
       this.s.elapsed = saved.elapsed + Math.floor((Date.now()-saved._savedAt)/1000);
-    }
+    if(saved.running && this.s.elapsed>0)
+      this.s._startTs = Date.now() - this.s.elapsed*1000;
     this.updTopBar();
     if(this.s.taskId) this._startInterval();
   },
 
-  _save() {
-    DB.saveFocusState({...this.s, interval:null, _savedAt:Date.now()});
-  },
+  _save() { DB.saveFocusState({...this.s, interval:null, _savedAt:Date.now()}); },
 
   startTask(taskId) {
     if(this.s.running && this.s.taskId!==taskId) this.finish(false);
     const t = TM.get(taskId);
-    this.s.taskId = taskId;
-    this.s.elapsed = 0;
-    this.s.running = false;
-    this.s.estimated = t ? (t.estimatedTime||0)*60 : 0;
+    this.s = {taskId, elapsed:0, running:false, interval:null, estimated: t?(t.estimatedTime||0)*60:0, _startTs:null};
     TM.start(taskId);
     this.openOverlay();
   },
@@ -1933,8 +1838,7 @@ const FM = {
     const t = TM.get(this.s.taskId);
     document.getElementById('fo').classList.add('on');
     document.getElementById('fo-task').textContent = t ? t.title : '—';
-    this._updTimerDisplay();
-    this._updButtons();
+    this._updTimerDisplay(); this._updButtons();
   },
 
   closeOverlay() { document.getElementById('fo').classList.remove('on'); },
@@ -1942,99 +1846,96 @@ const FM = {
   startTimer() {
     if(!this.s.taskId) return;
     this.s.running = true;
+    this.s._startTs = Date.now() - this.s.elapsed*1000;
     LM.log('focus_start', this.s.taskId);
-    this._startInterval();
-    this._updButtons();
-    this.updTopBar();
-    this._save();
+    this._startInterval(); this._updButtons(); this.updTopBar(); this._save();
+    this._acquireWakeLock();
   },
 
   _startInterval() {
     if(this.s.interval) clearInterval(this.s.interval);
     this.s.interval = setInterval(()=>{
       if(!this.s.running) return;
-      this.s.elapsed++;
-      this._updTimerDisplay();
-      this.updTopBar();
-      if(this.s.elapsed % 30 === 0) this._save();
+      this.s.elapsed = this.s._startTs ? Math.floor((Date.now()-this.s._startTs)/1000) : this.s.elapsed+1;
+      this._updTimerDisplay(); this.updTopBar();
+      if(this.s.elapsed%30===0) this._save();
     }, 1000);
   },
 
   togglePause() {
     this.s.running = !this.s.running;
-    if(this.s.running) { this._startInterval(); toast('▶ Focus resumed',''); }
-    else { clearInterval(this.s.interval); toast('⏸ Paused',''); }
-    this._updButtons();
-    this._save();
+    if(this.s.running) {
+      this.s._startTs = Date.now() - this.s.elapsed*1000;
+      this._startInterval(); toast('▶ Focus resumed',''); this._acquireWakeLock();
+    } else {
+      clearInterval(this.s.interval); this.s._startTs=null; toast('⏸ Paused',''); this._releaseWakeLock();
+    }
+    this._updButtons(); this._save();
   },
 
   finish(log=true) {
-    clearInterval(this.s.interval);
+    clearInterval(this.s.interval); this._releaseWakeLock();
     if(log && this.s.taskId) {
-      const sess = {
-        id: uuid(), taskId:this.s.taskId,
-        startTime: Date.now()-this.s.elapsed*1000,
-        endTime: Date.now(), duration: this.s.elapsed,
-      };
-      const sessions = DB.getSessions();
-      sessions.push(sess);
-      DB.saveSessions(sessions);
-      LM.log('focus_end', this.s.taskId, {duration:this.s.elapsed});
+      const sess={id:uuid(),taskId:this.s.taskId,startTime:Date.now()-this.s.elapsed*1000,endTime:Date.now(),duration:this.s.elapsed};
+      const sessions=DB.getSessions(); sessions.push(sess); DB.saveSessions(sessions);
+      LM.log('focus_end',this.s.taskId,{duration:this.s.elapsed});
       toast(`🎯 Focus done — ${fmtDur(this.s.elapsed)} logged`,'s');
     }
-    this.s = {taskId:null, elapsed:0, running:false, interval:null, estimated:0};
-    DB.saveFocusState(null);
-    this.closeOverlay();
-    this.updTopBar();
-    renderView(_curView);
+    this.s={taskId:null,elapsed:0,running:false,interval:null,estimated:0,_startTs:null};
+    DB.saveFocusState(null); this.closeOverlay(); this.updTopBar(); renderView(_curView);
   },
 
   todayFocusTime() {
     return DB.getSessions().filter(s=>isToday(s.startTime)).reduce((s,x)=>s+(x.duration||0),0);
   },
 
-  _updTimerDisplay() {
-    const t = fmtTime(this.s.elapsed);
-    const el = document.getElementById('fo-timer');
-    if(el) el.textContent = t;
-    const tb = document.getElementById('tb-timer');
-    if(tb) tb.textContent = t;
-    // Progress bar in focus overlay
-    const pb = document.getElementById('fo-pb');
-    if(pb && this.s.estimated > 0) {
-      pb.style.width = Math.min(100, Math.round(this.s.elapsed/this.s.estimated*100))+'%';
+  onVisibilityResume() {
+    if(this.s.running && this.s._startTs) {
+      this.s.elapsed=Math.floor((Date.now()-this.s._startTs)/1000);
+      this._updTimerDisplay(); this.updTopBar();
     }
+    this.reacquireWakeLock();
+  },
+
+  _updTimerDisplay() {
+    const t=fmtTime(this.s.elapsed);
+    const el=document.getElementById('fo-timer'); if(el) el.textContent=t;
+    const tb=document.getElementById('tb-timer'); if(tb) tb.textContent=t;
+    const pb=document.getElementById('fo-pb');
+    if(pb&&this.s.estimated>0) pb.style.width=Math.min(100,Math.round(this.s.elapsed/this.s.estimated*100))+'%';
+    if(this.s.running&&this.s.taskId){const tk=TM.get(this.s.taskId);document.title=`⏱ ${t} — ${tk?tk.title:'Focus'} | NEXUS`;}
+    else document.title='NEXUS — Discipline OS';
   },
 
   updTopBar() {
-    const fb = document.getElementById('tb-focus');
-    const fe = document.getElementById('tb-empty');
+    const fb=document.getElementById('tb-focus'),fe=document.getElementById('tb-empty');
     if(!fb||!fe) return;
-    if(this.s.taskId) {
+    if(this.s.taskId){
       fb.style.display='flex'; fe.style.display='none';
-      const t = TM.get(this.s.taskId);
-      document.getElementById('tb-tname').textContent = t ? t.title : '—';
-      document.getElementById('tb-timer').textContent = fmtTime(this.s.elapsed);
-    } else {
-      fb.style.display='none'; fe.style.display='block';
-    }
+      const t=TM.get(this.s.taskId);
+      document.getElementById('tb-tname').textContent=t?t.title:'—';
+      document.getElementById('tb-timer').textContent=fmtTime(this.s.elapsed);
+    } else { fb.style.display='none'; fe.style.display='block'; }
   },
 
   _updButtons() {
-    const st = document.getElementById('fo-start');
-    const ps = document.getElementById('fo-pause');
+    const st=document.getElementById('fo-start'),ps=document.getElementById('fo-pause');
     if(!st||!ps) return;
-    if(this.s.running) {
-      st.style.display='none'; ps.style.display=''; ps.textContent='⏸ PAUSE';
-    } else if(this.s.elapsed > 0) {
-      st.style.display='none'; ps.style.display=''; ps.textContent='▶ RESUME';
-    } else {
-      st.style.display=''; ps.style.display='none';
-    }
+    if(this.s.running){st.style.display='none';ps.style.display='';ps.textContent='⏸ PAUSE';}
+    else if(this.s.elapsed>0){st.style.display='none';ps.style.display='';ps.textContent='▶ RESUME';}
+    else{st.style.display='';ps.style.display='none';}
   },
+
+  async _acquireWakeLock() {
+    if(!('wakeLock' in navigator)) return;
+    try{this._wakeLock=await navigator.wakeLock.request('screen');this._wakeLock.addEventListener('release',()=>{this._wakeLock=null;});}
+    catch(e){console.warn('WakeLock:',e.message);}
+  },
+  _releaseWakeLock(){if(this._wakeLock){this._wakeLock.release();this._wakeLock=null;}},
+  reacquireWakeLock(){if(this.s.running&&!this._wakeLock)this._acquireWakeLock();},
 };
 
-// ═══════════════════════════════════════════
+
 // GOAL MANAGER
 // ═══════════════════════════════════════════
 const GM = {
@@ -2256,37 +2157,8 @@ function quickAdd() {
 }
 
 // ═══════════════════════════════════════════
-// RENDER TIMELINE
-// ═══════════════════════════════════════════
-function renderTimeline(logs, containerId) {
-  const el = document.getElementById(containerId);
-  if(!el) return;
-  if(!logs.length) {
-    el.innerHTML='<div style="color:var(--tm);font-size:12px;padding:8px 0">No activity recorded yet.</div>';
-    return;
-  }
-  const tasks = DB.getTasks();
-  const dotCls = {created:'cr',started:'st',completed:'co',focus_start:'fo',focus_end:'fo',skipped:'sk',uncompleted:''};
-  const actionLbl = {
-    created:'Created',started:'▶ Started',completed:'✓ Completed',
-    focus_start:'⏱ Focus started',focus_end:'⏹ Focus ended',
-    skipped:'↷ Skipped',uncompleted:'↺ Reopened'
-  };
-  el.innerHTML = logs.slice(0,100).map(l=>{
-    const t = tasks.find(x=>x.id===l.taskId);
-    const tn = t ? esc(t.title) : '<em style="color:var(--tm)">Deleted task</em>';
-    const extra = l.duration ? ` — <span style="font-family:var(--mono)">${fmtDur(l.duration)}</span>` : '';
-    return `<div class="tli">
-      <div class="tld ${dotCls[l.action]||''}"></div>
-      <div class="tl-content">
-        <div class="tl-action">${actionLbl[l.action]||l.action}: <strong>${tn}</strong>${extra}</div>
-        <div class="tl-time">${fmtStamp(l.timestamp)}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
 
-// ═══════════════════════════════════════════
+
 // DAILY HABITS ENGINE
 // ═══════════════════════════════════════════
 const HABITS = {
@@ -2343,6 +2215,13 @@ const HABITS = {
   _save(state) {
     const meta = DB.getMeta();
     meta.habits = state;
+    // Save prayer state to history for statistics
+    if(!meta.prayerHistory) meta.prayerHistory = {};
+    meta.prayerHistory[state.date] = state.prayers;
+    // Keep only last 90 days
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-90);
+    const cutStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
+    Object.keys(meta.prayerHistory).forEach(d=>{ if(d<cutStr) delete meta.prayerHistory[d]; });
     DB.saveMeta(meta);
   },
 
@@ -2480,6 +2359,8 @@ function renderHabits() {
 }
 
 // ═══════════════════════════════════════════
+
+
 // MONTH PLANNER ENGINE
 // ═══════════════════════════════════════════
 const MP = {
@@ -2590,7 +2471,7 @@ const MP = {
 
           const chipsHTML = shown.map(t=>`
             <div class="mp-chip p${t.priority[0]} ${t.status==='completed'?'done':''}"
-              draggable="true" data-tid="${t.id}"
+              data-draggable="true" data-tid="${t.id}"
               ondragstart="MP.onDragStart(event,'${t.id}')"
               ondragend="MP.onDragEnd(event)"
               title="${esc(t.title)}">
@@ -2831,6 +2712,62 @@ const MP = {
 };
 
 // ═══════════════════════════════════════════
+
+// ── Drag Protection: activate draggable only on double-click or long-press ──
+// Called from app.js after first render
+function initPlannerDragProtection() {
+  const container = document.getElementById('d-month-planner');
+  if(!container || container._dragProtected) return;
+  container._dragProtected = true;
+
+  let _longPressTimer = null;
+
+  container.addEventListener('mousedown', e => {
+    const chip = e.target.closest('[data-draggable]');
+    if(!chip) return;
+    _longPressTimer = setTimeout(() => {
+      chip.setAttribute('draggable', 'true');
+      chip.classList.add('drag-ready');
+    }, 500); // 500ms long-press
+  });
+
+  container.addEventListener('mouseup', e => {
+    clearTimeout(_longPressTimer);
+    const chip = e.target.closest('[data-draggable]');
+    if(chip && !chip.dataset.dragging) {
+      // Short click — not dragging
+      setTimeout(() => {
+        chip.removeAttribute('draggable');
+        chip.classList.remove('drag-ready');
+      }, 100);
+    }
+  });
+
+  container.addEventListener('dblclick', e => {
+    const chip = e.target.closest('[data-draggable]');
+    if(!chip) return;
+    chip.setAttribute('draggable', 'true');
+    chip.classList.add('drag-ready');
+    // Auto-remove if drag doesn't start within 2s
+    setTimeout(() => { chip.removeAttribute('draggable'); chip.classList.remove('drag-ready'); }, 2000);
+  });
+
+  container.addEventListener('dragstart', e => {
+    const chip = e.target.closest('[data-draggable]');
+    if(chip) chip.dataset.dragging = '1';
+  });
+
+  container.addEventListener('dragend', e => {
+    const chip = e.target.closest('[data-draggable]');
+    if(chip) {
+      delete chip.dataset.dragging;
+      chip.removeAttribute('draggable');
+      chip.classList.remove('drag-ready');
+    }
+  });
+}
+
+
 // RENDER DASHBOARD
 // ═══════════════════════════════════════════
 function renderDashboard() {
@@ -3486,6 +3423,8 @@ function setLogFilter(btn, filter) {
 }
 
 // ═══════════════════════════════════════════
+
+
 // HABITS MANAGER
 // ═══════════════════════════════════════════
 const HM = {
@@ -3780,6 +3719,71 @@ function renderHabitsView() {
     }
   }
 
+
+  // Prayer Statistics (last 7 days)
+  const prayerLogs = DB.getMeta().habitLogs || {};
+  function getPrayerStat(pid) {
+    // Count days in last 7 where any prayer column was checked
+    let done7=0, masjid7=0;
+    for(let i=6;i>=0;i--){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const dayMeta=DB.getMeta();
+      // We track per-day in habitLogs differently for prayers — check history from meta
+    }
+    return {done7, masjid7};
+  }
+  // Prayer stats from HABITS logs (stored in meta.habitHistory)
+  const meta2 = DB.getMeta();
+  const prayerHistory = meta2.prayerHistory || {};
+  const today2 = todayStr();
+  // Count last 30 days of prayer data
+  let totalPrayersPossible=0, totalPrayersDone=0, totalMasjid=0, totalJamaa=0;
+  for(let i=29;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const dayData=prayerHistory[ds];
+    if(dayData){
+      ['fajr','dhuhr','asr','maghrib','isha'].forEach(pid=>{
+        totalPrayersPossible++;
+        const pr=dayData[pid]||{};
+        if(pr.waqt||pr.jamaa||pr.masjid||pr.qadaa) totalPrayersDone++;
+        if(pr.masjid) totalMasjid++;
+        if(pr.jamaa) totalJamaa++;
+      });
+    }
+  }
+  // Also include today's current state
+  const todayPrayers = (DB.getMeta().habits||{}).prayers || {};
+  let todayDone=0;
+  ['fajr','dhuhr','asr','maghrib','isha'].forEach(pid=>{
+    const pr=todayPrayers[pid]||{};
+    if(pr.waqt||pr.jamaa||pr.masjid||pr.qadaa) todayDone++;
+  });
+  const overallRate = totalPrayersPossible>0 ? Math.round((totalPrayersDone/totalPrayersPossible)*100) : 0;
+
+  const prayerStatsEl = document.getElementById('hb-prayer-stats');
+  if(prayerStatsEl) prayerStatsEl.innerHTML = `
+    <div class="sh" style="margin-top:4px"><div class="st">🕌 <em>Prayer</em> Statistics</div></div>
+    <div class="prayer-stats-grid">
+      <div class="hb-stat" style="border-color:rgba(52,211,153,.3)">
+        <div class="hb-stat-icon">🕌</div>
+        <div><div class="hb-stat-val" style="color:var(--green)">${todayDone}/5</div><div class="hb-stat-lbl">Today</div></div>
+      </div>
+      <div class="hb-stat" style="border-color:rgba(96,165,250,.3)">
+        <div class="hb-stat-icon">🏛️</div>
+        <div><div class="hb-stat-val" style="color:var(--blue)">${totalMasjid}</div><div class="hb-stat-lbl">Masjid (30d)</div></div>
+      </div>
+      <div class="hb-stat" style="border-color:rgba(167,139,250,.3)">
+        <div class="hb-stat-icon">👥</div>
+        <div><div class="hb-stat-val" style="color:var(--purple)">${totalJamaa}</div><div class="hb-stat-lbl">Jamaa (30d)</div></div>
+      </div>
+      <div class="hb-stat" style="border-color:rgba(245,158,11,.3)">
+        <div class="hb-stat-icon">📊</div>
+        <div><div class="hb-stat-val" style="color:var(--accent)">${overallRate}%</div><div class="hb-stat-lbl">Rate (30d)</div></div>
+      </div>
+    </div>`;
+
   // Tips
   const tipsEl = document.getElementById('hb-tips');
   if(tipsEl) {
@@ -3799,6 +3803,8 @@ function renderHabitsView() {
 }
 
 // ═══════════════════════════════════════════
+
+
 // NAVIGATION
 // ═══════════════════════════════════════════
 let _curView = 'dashboard';
@@ -3954,6 +3960,7 @@ document.addEventListener('DOMContentLoaded', () => {
   FM.load();
   NM.init();
   renderDashboard();
+  setTimeout(()=>initPlannerDragProtection(), 500); // init after render
   checkPlanning();
 
   // ── Midnight tick: fires exactly at 00:00 each night ──
@@ -3976,6 +3983,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let _lastDate = todayStr();
   document.addEventListener('visibilitychange', () => {
     if(document.hidden) return;
+    FM.onVisibilityResume(); // recalculate timer elapsed + re-acquire wake lock
     const currentDate = todayStr();
     if(currentDate !== _lastDate) {
       _lastDate = currentDate;
@@ -3992,6 +4000,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(_curView==='analytics') setTimeout(()=>renderAnalytics(),100);
   });
 });
+
 </script>
 </body>
 </html>
