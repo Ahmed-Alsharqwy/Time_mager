@@ -2,12 +2,60 @@
 <html lang="ar" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>NEXUS — Discipline OS</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS / Safari PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NEXUS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+
+<!-- Android Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="NEXUS">
+<meta name="theme-color" content="#F59E0B" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#D97706" media="(prefers-color-scheme: light)">
+
+<!-- General SEO / Meta -->
+<meta name="description" content="NEXUS — Personal Productivity & Discipline OS. Tasks, Habits, Focus Timer, Prayer Tracker, Monthly Planner.">
+<meta name="keywords" content="productivity, habits, tasks, focus, prayer, planner">
+<meta name="author" content="Ahmed Elsayed">
+
+<!-- Open Graph -->
+<meta property="og:title" content="NEXUS — Discipline OS">
+<meta property="og:description" content="Your personal productivity and discipline operating system.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icons/icon-512.png">
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+<!-- Capacitor (for Android build) -->
+<script>
+  // Register Service Worker
+  if('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('[NEXUS] SW registered:', reg.scope))
+        .catch(err => console.warn('[NEXUS] SW failed:', err));
+    });
+  }
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
   /* DARK THEME (DEFAULT) */
   --bg:        #080A0F;
   --s1:        #0F1218;
@@ -67,7 +115,7 @@
 /* ── RESET ────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5;-webkit-tap-highlight-color:transparent;touch-action:pan-y;overscroll-behavior:none}
 body{overflow:hidden}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -96,7 +144,7 @@ body{overflow:hidden}
 .nav-item:hover{color:var(--text);background:var(--s2)}
 .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--a-dim)}
 .nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
-.sb-footer{padding:12px 14px;border-top:1px solid var(--b1)}
+.sb-footer{padding:12px 14px calc(12px + var(--safe-bottom));border-top:1px solid var(--b1)}
 .streak-box{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--s2);border-radius:var(--r);border:1px solid var(--b1);margin-bottom:7px}
 .streak-num{font-size:20px;font-weight:700;color:var(--accent);font-family:var(--mono);line-height:1}
 .streak-lbl{font-size:9px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;line-height:1.4}
@@ -4001,6 +4049,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+</script>
+<!-- Capacitor Runtime (loaded when built as Android APK) -->
+<script>
+  // Handle Android back button
+  document.addEventListener('ionBackButton', (ev) => {
+    ev.detail.register(10, () => {
+      const modals = document.querySelectorAll('.mbk.on, .mp-picker-bk.on');
+      if(modals.length) { modals[modals.length-1].classList.remove('on'); return; }
+      if(document.getElementById('fo')?.classList.contains('on')) { FM.closeOverlay(); return; }
+      if(typeof Android !== 'undefined') Android.minimizeApp();
+    });
+  });
+
+  // Haptic feedback helper
+  function haptic(type='impact') {
+    if(window.Capacitor?.Plugins?.Haptics) {
+      window.Capacitor.Plugins.Haptics.impact({ style: type });
+    }
+  }
 </script>
 </body>
 </html>
