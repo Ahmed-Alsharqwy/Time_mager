@@ -491,7 +491,7 @@ function renderAnalytics() {
   `).join('');
 
   setTimeout(()=>{
-    drawBar('wk-chart', TM.weeklyCompletions(), '#F59E0B');
+    drawBar('wk-chart', TM.weeklyCompletions(), '#3B82F6');
     drawBar('fc-chart', TM.weeklyFocus(), '#60A5FA');
   }, 60);
 }

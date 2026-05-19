@@ -53,7 +53,6 @@ auth.onAuthStateChanged(user => {
         docRef.set(DB._state).catch(e => console.error("Initial push failed", e));
       }
       _fbFirstLoad = false;
-      seedMyCustomTasks();
       if (typeof refreshAll === 'function') refreshAll();
     });
   } else {

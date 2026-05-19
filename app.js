@@ -2,12 +2,24 @@
 // ═══════════════════════════════════════════
 let _curView = 'dashboard';
 
+const PAGE_TITLES = {
+  dashboard: 'Dashboard',
+  tasks: 'Tasks',
+  habits: 'Habits',
+  goals: 'Goals',
+  analytics: 'Analytics',
+  profile: 'Profile'
+};
+
 function switchView(name) {
   _curView = name;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const vEl = document.getElementById('view-'+name);
   if(vEl) vEl.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+  document.querySelectorAll('.bn-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+  const titleEl = document.getElementById('tb-page-title');
+  if(titleEl) titleEl.textContent = PAGE_TITLES[name] || name;
   renderView(name);
   // Close sidebar on mobile
   if(window.innerWidth<=768) closeSidebar();

@@ -4,7 +4,7 @@ const HM = {
   COLORS: {
     green:  { bg:'rgba(52,211,153,.12)',  fill:'var(--green)',   border:'rgba(52,211,153,.4)' },
     blue:   { bg:'rgba(96,165,250,.12)',  fill:'var(--blue)',    border:'rgba(96,165,250,.4)' },
-    amber:  { bg:'rgba(245,158,11,.12)',  fill:'var(--accent)',  border:'rgba(245,158,11,.4)' },
+    amber:  { bg:'rgba(59,130,246,.12)',  fill:'var(--accent)',  border:'rgba(59,130,246,.4)' },
     purple: { bg:'rgba(167,139,250,.12)', fill:'var(--purple)',  border:'rgba(167,139,250,.4)' },
     red:    { bg:'rgba(248,113,113,.12)', fill:'var(--red)',     border:'rgba(248,113,113,.4)' },
   },
@@ -221,7 +221,7 @@ function renderHabitsView() {
       <div class="hb-stat-icon">✅</div>
       <div><div class="hb-stat-val" style="color:var(--green)">${doneToday}/${totalHabits}</div><div class="hb-stat-lbl">Done Today</div></div>
     </div>
-    <div class="hb-stat" style="border-color:rgba(245,158,11,.3)">
+    <div class="hb-stat" style="border-color:rgba(59,130,246,.3)">
       <div class="hb-stat-icon">🔥</div>
       <div><div class="hb-stat-val" style="color:var(--accent)">${bestStreak}</div><div class="hb-stat-lbl">Best Streak</div></div>
     </div>
@@ -351,7 +351,7 @@ function renderHabitsView() {
         <div class="hb-stat-icon">👥</div>
         <div><div class="hb-stat-val" style="color:var(--purple)">${totalJamaa}</div><div class="hb-stat-lbl">Jamaa (30d)</div></div>
       </div>
-      <div class="hb-stat" style="border-color:rgba(245,158,11,.3)">
+      <div class="hb-stat" style="border-color:rgba(59,130,246,.3)">
         <div class="hb-stat-icon">📊</div>
         <div><div class="hb-stat-val" style="color:var(--accent)">${overallRate}%</div><div class="hb-stat-lbl">Rate (30d)</div></div>
       </div>

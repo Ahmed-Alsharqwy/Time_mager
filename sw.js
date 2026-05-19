@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════
 // NEXUS Service Worker — Offline + Cache
 // ═══════════════════════════════════════════
-const CACHE_NAME = 'nexus-v2.0';
+const CACHE_NAME = 'nexus-v3.0';
 const FIREBASE_HOSTS = ['firebasejs', 'googleapis.com', 'gstatic.com'];
 
 // Assets to precache on install
@@ -10,8 +10,25 @@ const PRECACHE = [
   '/index.html',
   '/nexus.css',
   '/manifest.json',
+  '/app.js',
+  '/auth.js',
+  '/db.js',
+  '/render.js',
+  '/managers.js',
+  '/focus.js',
+  '/habits.js',
+  '/habits_page.js',
+  '/goals_ui.js',
+  '/planner.js',
+  '/theme.js',
+  '/utils.js',
+  '/icons/icon-48.png',
+  '/icons/icon-72.png',
+  '/icons/icon-96.png',
+  '/icons/icon-144.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/maskable-512.png',
 ];
 
 // ── Install: cache core assets ──
